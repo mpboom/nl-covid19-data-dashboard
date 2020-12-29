@@ -28,9 +28,7 @@ export default function App(props: AppPropsWithLayout) {
     };
 
     Router.events.on('routeChangeComplete', handleRouteChange);
-    return () => {
-      Router.events.off('routeChangeComplete', handleRouteChange);
-    };
+    return () => Router.events.off('routeChangeComplete', handleRouteChange);
   }, []);
 
   const pageWithLayout = getLayout(<Component {...pageProps} />, pageProps);

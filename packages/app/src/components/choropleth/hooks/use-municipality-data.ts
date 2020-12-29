@@ -1,13 +1,9 @@
 import { set } from 'lodash';
 import { useMemo } from 'react';
-import useSWR from 'swr';
-import { Municipalities } from '~/types/data';
-import { assert } from '~/utils/assert';
 import {
   Dictionary,
   MunicipalGeoJSON,
   MunicipalityProperties,
-  MunicipalitiesMetricName,
 } from '../shared';
 
 /**
@@ -29,7 +25,7 @@ interface MunicipalityMetricValue extends MunicipalityProperties {
   [key: string]: unknown;
 }
 
-interface MunicipalityChoroplethValue extends MunicipalityMetricValue {
+export interface MunicipalityChoroplethValue extends MunicipalityMetricValue {
   __color_value: number;
 }
 
@@ -59,13 +55,10 @@ export function useMunicipalityNavigationData(
   };
 }
 
-export function useMunicipalityData(
+export function useMunicipalityData<T extends MunicipalityChoroplethValue>(
   featureCollection: MunicipalGeoJSON,
-  metricName: MunicipalitiesMetricName,
-  metricProperty: string
+  values: T[]
 ): UseMunicipalityDataReturnValue {
-  const { data } = useSWR<Municipalities>('/json/GM_COLLECTION.json');
-
   return useMemo(() => {
     const propertyData = featureCollection.features.reduce(
       (acc, feature) =>
@@ -73,7 +66,7 @@ export function useMunicipalityData(
       {} as Record<string, MunicipalityProperties>
     );
 
-    if (!data) {
+    if (!values) {
       return {
         getChoroplethValue: (id) => ({
           ...propertyData[id],
@@ -83,16 +76,7 @@ export function useMunicipalityData(
       };
     }
 
-    const metricsForAllMunicipalities = (data[metricName] as unknown) as
-      | MunicipalityMetricValue[]
-      | undefined;
-
-    assert(
-      metricsForAllMunicipalities,
-      `Missing municipality metric data for ${metricName}`
-    );
-
-    const mergedData = metricsForAllMunicipalities.reduce((acc, value) => {
+    const mergedData = values.reduce((acc, value) => {
       const feature = featureCollection.features.find(
         (feat) => feat.properties.gemcode === value.gmcode
       );
@@ -107,10 +91,6 @@ export function useMunicipalityData(
          * tooltop function.
          */
         ...value,
-        /**
-         * The metric value used to define the fill color in the choropleth
-         */
-        __color_value: Number(value[metricProperty]),
       });
     }, {} as Dictionary<MunicipalityChoroplethValue>);
 
@@ -122,5 +102,5 @@ export function useMunicipalityData(
     };
 
     return { getChoroplethValue, hasData };
-  }, [data, metricName, metricProperty, featureCollection]);
+  }, [values, featureCollection]);
 }

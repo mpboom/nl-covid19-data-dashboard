@@ -2,22 +2,21 @@ import css from '@styled-system/css';
 import { Feature, MultiPolygon } from 'geojson';
 import { ReactNode, useCallback } from 'react';
 import { AspectRatio } from '~/components-styled/aspect-ratio';
-import { regionThresholds } from '~/components/choropleth/region-thresholds';
 import { Choropleth } from './choropleth';
 import {
+  RegionChoroplethValue,
   useChartDimensions,
   useChoroplethColorScale,
   useSafetyRegionBoundingbox,
   useSafetyRegionData,
 } from './hooks';
-import { getDataThresholds } from './legenda/utils';
 import { Path } from './path';
-import { SafetyRegionProperties, RegionsMetricName } from './shared';
+import { ChoroplethThresholdsValue, SafetyRegionProperties } from './shared';
 import { countryGeo, regionGeo } from './topology';
 
 type SafetyRegionChoroplethProps<T> = {
-  metricName: RegionsMetricName;
-  metricProperty: string;
+  values: T[];
+  thresholds: ChoroplethThresholdsValue[];
   selected?: string;
   highlightSelection?: boolean;
   onSelect?: (context: SafetyRegionProperties) => void;
@@ -39,14 +38,14 @@ type SafetyRegionChoroplethProps<T> = {
  *
  * @param props
  */
-export function SafetyRegionChoropleth<T>(
+export function SafetyRegionChoropleth<T extends RegionChoroplethValue>(
   props: SafetyRegionChoroplethProps<T>
 ) {
   const {
+    values,
+    thresholds,
     selected,
     highlightSelection = true,
-    metricName,
-    metricProperty,
     onSelect,
     tooltipContent,
   } = props;
@@ -56,22 +55,12 @@ export function SafetyRegionChoropleth<T>(
 
   const boundingBox = useSafetyRegionBoundingbox(regionGeo, selected);
 
-  const { getChoroplethValue, hasData } = useSafetyRegionData(
+  const { getChoroplethValue, hasData } = useSafetyRegionData<T>(
     regionGeo,
-    metricName,
-    metricProperty
+    values
   );
 
-  const selectedThreshold = getDataThresholds(
-    regionThresholds,
-    metricName,
-    metricProperty
-  );
-
-  const getFillColor = useChoroplethColorScale(
-    getChoroplethValue,
-    selectedThreshold
-  );
+  const getFillColor = useChoroplethColorScale(getChoroplethValue, thresholds);
 
   const featureCallback = useCallback(
     (feature: Feature<MultiPolygon, SafetyRegionProperties>, path: string) => {

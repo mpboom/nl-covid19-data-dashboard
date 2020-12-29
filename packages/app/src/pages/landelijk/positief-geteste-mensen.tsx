@@ -1,4 +1,5 @@
 import css from '@styled-system/css';
+import { map } from 'lodash';
 import { useRouter } from 'next/router';
 import { useState } from 'react';
 import Afname from '~/assets/afname.svg';
@@ -16,6 +17,7 @@ import { PageBarScale } from '~/components-styled/page-barscale';
 import { TileList } from '~/components-styled/tile-list';
 import { TwoKpiSection } from '~/components-styled/two-kpi-section';
 import { Heading, Text } from '~/components-styled/typography';
+import { municipalThresholds } from '~/components/choropleth/municipal-thresholds';
 import { MunicipalityChoropleth } from '~/components/choropleth/municipality-choropleth';
 import { regionThresholds } from '~/components/choropleth/region-thresholds';
 import { SafetyRegionChoropleth } from '~/components/choropleth/safety-region-choropleth';
@@ -28,10 +30,8 @@ import { AgeDemographic } from '~/domain/infected-people/age-demographic/age-dem
 import { formatAgeGroupRange } from '~/domain/infected-people/age-demographic/age-demographic-chart';
 import { FCWithLayout } from '~/domain/layout/layout';
 import { getNationalLayout } from '~/domain/layout/national-layout';
-import {
-  getNationalStaticProps,
-  NationalPageProps,
-} from '~/static-props/nl-data';
+import { getNationalStaticProps3 } from '~/static-props/nl-data';
+import { StaticProps } from '~/static-props/types';
 import { colors } from '~/style/theme';
 import { NationalTestedPerAgeGroup } from '~/types/data.d';
 import { assert } from '~/utils/assert';
@@ -40,29 +40,16 @@ import { formatNumber, formatPercentage } from '~/utils/formatNumber';
 import { replaceKpisInText } from '~/utils/replaceKpisInText';
 import { replaceVariablesInText } from '~/utils/replaceVariablesInText';
 
-/* Retrieves certain age demographic data to be used in the example text. */
-function getAgeDemographicExampleData(data: NationalTestedPerAgeGroup) {
-  const ageGroupRange = '20-29';
-  const value = data.values.find((x) => x.age_group_range === ageGroupRange);
+export const getStaticProps = getNationalStaticProps3({
+  choropleth: {
+    vr: ['tested_overall'],
+    gm: ['tested_overall'],
+  },
+});
 
-  assert(
-    value,
-    `NationalTestedPerAgeGroup should contain a value for age group ${ageGroupRange}`
-  );
-
-  return {
-    ageGroupRange: formatAgeGroupRange(ageGroupRange),
-    ageGroupPercentage: `${formatPercentage(
-      value.age_group_percentage * 100
-    )}%`,
-    infectedPercentage: `${formatPercentage(value.infected_percentage * 100)}%`,
-  };
-}
-
-const PositivelyTestedPeople: FCWithLayout<NationalPageProps> = ({
-  data,
-  text: siteText,
-}) => {
+const PositivelyTestedPeople: FCWithLayout<
+  StaticProps<typeof getStaticProps>
+> = ({ data, choropleth, text: siteText }) => {
   const text = siteText.positief_geteste_personen;
   const ggdText = siteText.positief_geteste_personen_ggd;
   const [selectedMap, setSelectedMap] = useState<RegionControlOption>(
@@ -77,6 +64,9 @@ const PositivelyTestedPeople: FCWithLayout<NationalPageProps> = ({
   const ageDemographicExampleData = getAgeDemographicExampleData(
     data.tested_per_age_group
   );
+
+  assert(choropleth?.vr.positive_tested_people, 'choropleth data missing');
+  assert(choropleth?.gm.positive_tested_people, 'choropleth data missing');
 
   return (
     <>
@@ -175,7 +165,10 @@ const PositivelyTestedPeople: FCWithLayout<NationalPageProps> = ({
           chartRegion={selectedMap}
           legend={{
             title: text.chloropleth_legenda.titel,
-            thresholds: regionThresholds.tested_overall.infected_per_100k,
+            thresholds:
+              selectedMap === 'municipal'
+                ? municipalThresholds.tested_overall.infected_per_100k
+                : regionThresholds.tested_overall.infected_per_100k,
           }}
         >
           {/**
@@ -191,8 +184,12 @@ const PositivelyTestedPeople: FCWithLayout<NationalPageProps> = ({
            */}
           {selectedMap === 'municipal' && (
             <MunicipalityChoropleth
-              metricName="tested_overall"
-              metricProperty="infected_per_100k"
+              // @TODO .tested_overal.infected_per_100k ?
+              values={choropleth.gm.positive_tested_people.map((x) => ({
+                ...x,
+                __color_value: x.positive_tested_people,
+              }))}
+              thresholds={municipalThresholds.tested_overall.infected_per_100k}
               tooltipContent={createPositiveTestedPeopleMunicipalTooltip(
                 createSelectMunicipalHandler(router)
               )}
@@ -201,8 +198,12 @@ const PositivelyTestedPeople: FCWithLayout<NationalPageProps> = ({
           )}
           {selectedMap === 'region' && (
             <SafetyRegionChoropleth
-              metricName="tested_overall"
-              metricProperty="infected_per_100k"
+              // @TODO .tested_overal.infected_per_100k ?
+              values={choropleth.vr.positive_tested_people.map((x) => ({
+                ...x,
+                __color_value: x.positive_tested_people,
+              }))}
+              thresholds={regionThresholds.tested_overall.infected_per_100k}
               tooltipContent={createPositiveTestedPeopleRegionalTooltip(
                 createSelectRegionHandler(router, 'positief-geteste-mensen')
               )}
@@ -400,6 +401,23 @@ const PositivelyTestedPeople: FCWithLayout<NationalPageProps> = ({
 
 PositivelyTestedPeople.getLayout = getNationalLayout;
 
-export const getStaticProps = getNationalStaticProps;
-
 export default PositivelyTestedPeople;
+
+/* Retrieves certain age demographic data to be used in the example text. */
+function getAgeDemographicExampleData(data: NationalTestedPerAgeGroup) {
+  const ageGroupRange = '20-29';
+  const value = data.values.find((x) => x.age_group_range === ageGroupRange);
+
+  assert(
+    value,
+    `NationalInfectedAgeGroups should contain a value for age group ${ageGroupRange}`
+  );
+
+  return {
+    ageGroupRange: formatAgeGroupRange(ageGroupRange),
+    ageGroupPercentage: `${formatPercentage(
+      value.age_group_percentage * 100
+    )}%`,
+    infectedPercentage: `${formatPercentage(value.infected_percentage * 100)}%`,
+  };
+}

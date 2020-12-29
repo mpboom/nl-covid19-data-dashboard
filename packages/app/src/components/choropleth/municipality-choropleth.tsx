@@ -4,21 +4,20 @@ import { ReactNode, useCallback } from 'react';
 import { AspectRatio } from '~/components-styled/aspect-ratio';
 import { Choropleth } from './choropleth';
 import {
+  MunicipalityChoroplethValue,
   useChartDimensions,
   useChoroplethColorScale,
   useMunicipalityBoundingbox,
   useMunicipalityData,
   useRegionMunicipalities,
 } from './hooks';
-import { getDataThresholds } from './legenda/utils';
-import { municipalThresholds } from './municipal-thresholds';
 import { Path } from './path';
-import { MunicipalityProperties, MunicipalitiesMetricName } from './shared';
+import { ChoroplethThresholdsValue, MunicipalityProperties } from './shared';
 import { countryGeo, municipalGeo, regionGeo } from './topology';
 
 type MunicipalityChoroplethProps<T> = {
-  metricName: MunicipalitiesMetricName;
-  metricProperty: string;
+  values: T[];
+  thresholds: ChoroplethThresholdsValue[];
   selected?: string;
   highlightSelection?: boolean;
   onSelect?: (context: MunicipalityProperties) => void;
@@ -38,13 +37,13 @@ type MunicipalityChoroplethProps<T> = {
  *
  * @param props
  */
-export function MunicipalityChoropleth<T>(
+export function MunicipalityChoropleth<T extends MunicipalityChoroplethValue>(
   props: MunicipalityChoroplethProps<T>
 ) {
   const {
+    values,
+    thresholds,
     selected,
-    metricName,
-    metricProperty,
     onSelect,
     tooltipContent,
     highlightSelection = true,
@@ -57,22 +56,12 @@ export function MunicipalityChoropleth<T>(
 
   const { getChoroplethValue, hasData } = useMunicipalityData(
     municipalGeo,
-    metricName,
-    metricProperty
+    values
   );
 
   const safetyRegionMunicipalCodes = useRegionMunicipalities(selected);
 
-  const thresholdValues = getDataThresholds(
-    municipalThresholds,
-    metricName,
-    metricProperty
-  );
-
-  const getFillColor = useChoroplethColorScale(
-    getChoroplethValue,
-    thresholdValues
-  );
+  const getFillColor = useChoroplethColorScale(getChoroplethValue, thresholds);
 
   const featureCallback = useCallback(
     (

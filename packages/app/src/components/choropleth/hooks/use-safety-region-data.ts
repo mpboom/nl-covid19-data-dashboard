@@ -1,20 +1,12 @@
 import { set } from 'lodash';
 import { useMemo } from 'react';
-import useSWR from 'swr';
-import { Regions } from '~/types/data';
-import { assert } from '~/utils/assert';
-import {
-  Dictionary,
-  RegionGeoJSON,
-  SafetyRegionProperties,
-  RegionsMetricName,
-} from '../shared';
+import { Dictionary, RegionGeoJSON, SafetyRegionProperties } from '../shared';
 
 interface RegionMetricValue extends SafetyRegionProperties {
   [key: string]: unknown;
 }
 
-interface RegionChoroplethValue extends RegionMetricValue {
+export interface RegionChoroplethValue extends RegionMetricValue {
   __color_value: number;
 }
 
@@ -41,36 +33,24 @@ type UseRegionDataReturnValue = {
  * @param metricProperty
  */
 
-export function useSafetyRegionData(
+export function useSafetyRegionData<T extends RegionChoroplethValue>(
   featureCollection: RegionGeoJSON,
-  metricName: RegionsMetricName,
-  metricProperty: string
+  values: T[]
 ): UseRegionDataReturnValue {
-  const { data } = useSWR<Regions>('/json/VR_COLLECTION.json');
-
   return useMemo(() => {
-    if (!data) {
+    const propertyData = featureCollection.features.reduce(
+      (acc, feature) => set(acc, feature.properties.vrcode, feature.properties),
+      {} as Record<string, SafetyRegionProperties>
+    );
+
+    if (!values) {
       return {
         getChoroplethValue: (id) => ({ ...propertyData[id], __color_value: 0 }),
         hasData: false,
       };
     }
 
-    const metricForAllRegions = (data[metricName] as unknown) as
-      | RegionMetricValue[]
-      | undefined;
-
-    assert(
-      metricForAllRegions,
-      `Missing regions metric data for ${metricName}`
-    );
-
-    const propertyData = featureCollection.features.reduce(
-      (acc, feature) => set(acc, feature.properties.vrcode, feature.properties),
-      {} as Record<string, SafetyRegionProperties>
-    );
-
-    const mergedData = metricForAllRegions.reduce((acc, value) => {
+    const mergedData = values.reduce((acc, value) => {
       const feature = featureCollection.features.find(
         (feat) => feat.properties.vrcode === value.vrcode
       );
@@ -85,10 +65,6 @@ export function useSafetyRegionData(
          * tooltop function.
          */
         ...value,
-        /**
-         * The metric value used to define the fill color in the choropleth
-         */
-        __color_value: Number(value[metricProperty]),
       };
 
       return set(acc, value.vrcode, choroplethValue);
@@ -102,5 +78,5 @@ export function useSafetyRegionData(
     };
 
     return { getChoroplethValue, hasData };
-  }, [data, metricName, metricProperty, featureCollection.features]);
+  }, [values, featureCollection.features]);
 }
