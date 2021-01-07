@@ -21,12 +21,10 @@ import {
  * @param featureCollection
  */
 
-interface MunicipalityMetricValue extends MunicipalityProperties {
-  [key: string]: unknown;
-}
-
-export interface MunicipalityChoroplethValue extends MunicipalityMetricValue {
+export interface MunicipalityChoroplethValue {
   __color_value: number;
+  gmcode: string;
+  [key: string]: unknown;
 }
 
 export type GetMunicipalityDataFunctionType = (

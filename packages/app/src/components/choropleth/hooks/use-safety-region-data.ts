@@ -2,12 +2,10 @@ import { set } from 'lodash';
 import { useMemo } from 'react';
 import { Dictionary, RegionGeoJSON, SafetyRegionProperties } from '../shared';
 
-interface RegionMetricValue extends SafetyRegionProperties {
-  [key: string]: unknown;
-}
-
-export interface RegionChoroplethValue extends RegionMetricValue {
+export interface RegionChoroplethValue {
   __color_value: number;
+  vrcode: string;
+  [key: string]: unknown;
 }
 
 export type GetRegionDataFunctionType = (id: string) => RegionChoroplethValue;

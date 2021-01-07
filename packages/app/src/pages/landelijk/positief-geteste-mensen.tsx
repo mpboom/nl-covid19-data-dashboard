@@ -1,5 +1,4 @@
 import css from '@styled-system/css';
-import { map } from 'lodash';
 import { useRouter } from 'next/router';
 import { useState } from 'react';
 import Afname from '~/assets/afname.svg';
@@ -30,7 +29,7 @@ import { AgeDemographic } from '~/domain/infected-people/age-demographic/age-dem
 import { formatAgeGroupRange } from '~/domain/infected-people/age-demographic/age-demographic-chart';
 import { FCWithLayout } from '~/domain/layout/layout';
 import { getNationalLayout } from '~/domain/layout/national-layout';
-import { getNationalStaticProps3 } from '~/static-props/nl-data';
+import { getNationalStaticProps4 } from '~/static-props/nl-data';
 import { StaticProps } from '~/static-props/types';
 import { colors } from '~/style/theme';
 import { NationalTestedPerAgeGroup } from '~/types/data.d';
@@ -40,10 +39,10 @@ import { formatNumber, formatPercentage } from '~/utils/formatNumber';
 import { replaceKpisInText } from '~/utils/replaceKpisInText';
 import { replaceVariablesInText } from '~/utils/replaceVariablesInText';
 
-export const getStaticProps = getNationalStaticProps3({
+export const getStaticProps = getNationalStaticProps4({
   choropleth: {
-    vr: ['tested_overall'],
-    gm: ['tested_overall'],
+    vr: ({ tested_overall }) => ({ tested_overall }),
+    gm: ({ tested_overall }) => ({ tested_overall }),
   },
 });
 
@@ -64,9 +63,6 @@ const PositivelyTestedPeople: FCWithLayout<
   const ageDemographicExampleData = getAgeDemographicExampleData(
     data.tested_per_age_group
   );
-
-  assert(choropleth?.vr.positive_tested_people, 'choropleth data missing');
-  assert(choropleth?.gm.positive_tested_people, 'choropleth data missing');
 
   return (
     <>
@@ -184,10 +180,9 @@ const PositivelyTestedPeople: FCWithLayout<
            */}
           {selectedMap === 'municipal' && (
             <MunicipalityChoropleth
-              // @TODO .tested_overal.infected_per_100k ?
-              values={choropleth.gm.positive_tested_people.map((x) => ({
+              values={choropleth.gm.tested_overall.map((x) => ({
                 ...x,
-                __color_value: x.positive_tested_people,
+                __color_value: x.infected_per_100k,
               }))}
               thresholds={municipalThresholds.tested_overall.infected_per_100k}
               tooltipContent={createPositiveTestedPeopleMunicipalTooltip(
@@ -198,10 +193,9 @@ const PositivelyTestedPeople: FCWithLayout<
           )}
           {selectedMap === 'region' && (
             <SafetyRegionChoropleth
-              // @TODO .tested_overal.infected_per_100k ?
-              values={choropleth.vr.positive_tested_people.map((x) => ({
+              values={choropleth.vr.tested_overall.map((x) => ({
                 ...x,
-                __color_value: x.positive_tested_people,
+                __color_value: x.infected_per_100k,
               }))}
               thresholds={regionThresholds.tested_overall.infected_per_100k}
               tooltipContent={createPositiveTestedPeopleRegionalTooltip(
