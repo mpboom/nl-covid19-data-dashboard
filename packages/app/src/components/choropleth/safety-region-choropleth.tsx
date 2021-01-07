@@ -19,8 +19,8 @@ type SafetyRegionChoroplethProps<T> = {
   thresholds: ChoroplethThresholdsValue[];
   selected?: string;
   highlightSelection?: boolean;
-  onSelect?: (context: SafetyRegionProperties) => void;
-  tooltipContent?: (context: SafetyRegionProperties & T) => ReactNode;
+  onSelect?: (context: RegionChoroplethValue & T) => void;
+  tooltipContent?: (context: RegionChoroplethValue & T) => ReactNode;
   isSelectorMap?: boolean;
 };
 
@@ -38,7 +38,7 @@ type SafetyRegionChoroplethProps<T> = {
  *
  * @param props
  */
-export function SafetyRegionChoropleth<T extends RegionChoroplethValue>(
+export function SafetyRegionChoropleth<T extends { vrcode: string }>(
   props: SafetyRegionChoroplethProps<T>
 ) {
   const {
@@ -55,7 +55,7 @@ export function SafetyRegionChoropleth<T extends RegionChoroplethValue>(
 
   const boundingBox = useSafetyRegionBoundingbox(regionGeo, selected);
 
-  const { getChoroplethValue, hasData } = useSafetyRegionData<T>(
+  const { getChoroplethValue, hasData } = useSafetyRegionData(
     regionGeo,
     values
   );
@@ -115,7 +115,7 @@ export function SafetyRegionChoropleth<T extends RegionChoroplethValue>(
   const getTooltipContent = (id: string) => {
     if (tooltipContent) {
       const data = getChoroplethValue(id);
-      return tooltipContent(data as any);
+      return tooltipContent(data);
     }
     return null;
   };

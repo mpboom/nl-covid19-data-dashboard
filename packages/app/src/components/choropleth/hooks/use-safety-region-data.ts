@@ -5,13 +5,14 @@ import { Dictionary, RegionGeoJSON, SafetyRegionProperties } from '../shared';
 export interface RegionChoroplethValue {
   __color_value: number;
   vrcode: string;
-  [key: string]: unknown;
+  vrname: string;
+  // [key: string]: unknown;
 }
 
-export type GetRegionDataFunctionType = (id: string) => RegionChoroplethValue;
+export type GetRegionDataFunctionType<T> = (id: string) => T;
 
-type UseRegionDataReturnValue = {
-  getChoroplethValue: GetRegionDataFunctionType;
+type UseRegionDataReturnValue<T> = {
+  getChoroplethValue: GetRegionDataFunctionType<T>;
   hasData: boolean;
 };
 
@@ -31,10 +32,10 @@ type UseRegionDataReturnValue = {
  * @param metricProperty
  */
 
-export function useSafetyRegionData<T extends RegionChoroplethValue>(
+export function useSafetyRegionData<T extends { vrcode: string }>(
   featureCollection: RegionGeoJSON,
   values: T[]
-): UseRegionDataReturnValue {
+): UseRegionDataReturnValue<RegionChoroplethValue & T> {
   return useMemo(() => {
     const propertyData = featureCollection.features.reduce(
       (acc, feature) => set(acc, feature.properties.vrcode, feature.properties),
@@ -43,7 +44,9 @@ export function useSafetyRegionData<T extends RegionChoroplethValue>(
 
     if (!values) {
       return {
-        getChoroplethValue: (id) => ({ ...propertyData[id], __color_value: 0 }),
+        getChoroplethValue: (id) =>
+          ({ ...propertyData[id], __color_value: 0 } as RegionChoroplethValue &
+            T),
         hasData: false,
       };
     }
@@ -55,7 +58,8 @@ export function useSafetyRegionData<T extends RegionChoroplethValue>(
 
       if (!feature) return acc;
 
-      const choroplethValue: RegionChoroplethValue = {
+      const choroplethValue: Omit<RegionChoroplethValue, '__color_value'> &
+        T = {
         ...feature?.properties,
         /**
          * To access things like timestamps in the tooltip we simply merge all
@@ -66,13 +70,16 @@ export function useSafetyRegionData<T extends RegionChoroplethValue>(
       };
 
       return set(acc, value.vrcode, choroplethValue);
-    }, {} as Dictionary<RegionChoroplethValue>);
+    }, {} as Dictionary<RegionChoroplethValue & T>);
 
     const hasData = Object.keys(mergedData).length > 0;
 
     const getChoroplethValue = (id: string) => {
       const value = mergedData[id];
-      return value || { ...propertyData[id], __color_value: 0 };
+      return (
+        value ||
+        ({ ...propertyData[id], __color_value: 0 } as RegionChoroplethValue & T)
+      );
     };
 
     return { getChoroplethValue, hasData };

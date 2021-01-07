@@ -12,24 +12,30 @@ import { TwoKpiSection } from '~/components-styled/two-kpi-section';
 import { Text } from '~/components-styled/typography';
 import { regionThresholds } from '~/components/choropleth/region-thresholds';
 import { SafetyRegionChoropleth } from '~/components/choropleth/safety-region-choropleth';
-import { createSelectRegionHandler } from '~/components/choropleth/select-handlers/create-select-region-handler';
-import { createDisablityInfectedLocationsRegionalTooltip } from '~/components/choropleth/tooltips/region/create-disability-infected-locations-regional-tooltip';
+import { TooltipContent } from '~/components/choropleth/tooltips/tooltipContent';
+import { SEOHead } from '~/components/seoHead';
 import { FCWithLayout } from '~/domain/layout/layout';
 import { getNationalLayout } from '~/domain/layout/national-layout';
-import { SEOHead } from '~/components/seoHead';
 import siteText from '~/locale/index';
-import {
-  getNationalStaticProps,
-  NationalPageProps,
-} from '~/static-props/nl-data';
+import { getNationalStaticProps } from '~/static-props/nl-data';
+import { StaticProps } from '~/static-props/types';
+import { formatNumber, formatPercentage } from '~/utils/formatNumber';
 
 const infectedLocationsText = siteText.gehandicaptenzorg_besmette_locaties;
 const positiveTestedPeopleText =
   siteText.gehandicaptenzorg_positief_geteste_personen;
 const locationDeaths = siteText.gehandicaptenzorg_oversterfte;
 
-const DisabilityCare: FCWithLayout<NationalPageProps> = (props) => {
-  const { data } = props;
+export const getStaticProps = getNationalStaticProps({
+  choropleth: {
+    vr: (x) => ({ disability_care: x.disability_care }),
+  },
+});
+
+const DisabilityCare: FCWithLayout<StaticProps<typeof getStaticProps>> = (
+  props
+) => {
+  const { data, choropleth } = props;
   const lastValue = data.disability_care.last_value;
   const values = data.disability_care.values;
 
@@ -146,12 +152,30 @@ const DisabilityCare: FCWithLayout<NationalPageProps> = (props) => {
           }}
         >
           <SafetyRegionChoropleth
-            metricName="disability_care"
-            metricProperty="infected_locations_percentage"
-            tooltipContent={createDisablityInfectedLocationsRegionalTooltip(
-              createSelectRegionHandler(router, 'gehandicaptenzorg')
+            values={choropleth.vr.disability_care.map((x) => ({
+              ...x,
+              __color_value: x.infected_locations_percentage,
+            }))}
+            thresholds={
+              regionThresholds.nursing_home.infected_locations_percentage
+            }
+            tooltipContent={(x) => (
+              <TooltipContent
+                title={x.vrname}
+                onSelect={() =>
+                  router.push(`/veiligheidsregio/${x.vrcode}/gehandicaptenzorg`)
+                }
+              >
+                <strong>
+                  {`${formatPercentage(
+                    x.infected_locations_percentage
+                  )}% (${formatNumber(x.infected_locations_total)})`}
+                </strong>
+              </TooltipContent>
             )}
-            onSelect={createSelectRegionHandler(router, 'gehandicaptenzorg')}
+            onSelect={(x) =>
+              router.push(`/veiligheidsregio/${x.vrcode}/gehandicaptenzorg`)
+            }
           />
         </ChoroplethTile>
 
@@ -213,7 +237,5 @@ const DisabilityCare: FCWithLayout<NationalPageProps> = (props) => {
 };
 
 DisabilityCare.getLayout = getNationalLayout;
-
-export const getStaticProps = getNationalStaticProps();
 
 export default DisabilityCare;
