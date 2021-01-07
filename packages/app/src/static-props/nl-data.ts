@@ -64,6 +64,10 @@ interface NationalPagePropsSettings<T1, T2> {
   };
 }
 
+export type NationalPageProps = Await<
+  ReturnType<ReturnType<typeof getNationalStaticProps4>>
+>['props'];
+
 export function getNationalStaticProps4<T1 = undefined, T2 = undefined>(
   settings: NationalPagePropsSettings<T1, T2>
 ) {
