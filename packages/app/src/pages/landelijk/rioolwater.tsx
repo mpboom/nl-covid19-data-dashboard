@@ -138,6 +138,6 @@ const SewerWater: FCWithLayout<NationalPageProps> = ({ data }) => {
 
 SewerWater.getLayout = getNationalLayout;
 
-export const getStaticProps = getNationalStaticProps;
+export const getStaticProps = getNationalStaticProps();
 
 export default SewerWater;

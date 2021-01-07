@@ -168,6 +168,6 @@ const ElderlyAtHomeNationalPage: FCWithLayout<NationalPageProps> = (props) => {
 
 ElderlyAtHomeNationalPage.getLayout = getNationalLayout;
 
-export const getStaticProps = getNationalStaticProps;
+export const getStaticProps = getNationalStaticProps();
 
 export default ElderlyAtHomeNationalPage;

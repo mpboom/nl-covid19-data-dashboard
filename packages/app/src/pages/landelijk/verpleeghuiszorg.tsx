@@ -222,6 +222,6 @@ const NursingHomeCare: FCWithLayout<NationalPageProps> = (props) => {
 
 NursingHomeCare.getLayout = getNationalLayout;
 
-export const getStaticProps = getNationalStaticProps;
+export const getStaticProps = getNationalStaticProps();
 
 export default NursingHomeCare;

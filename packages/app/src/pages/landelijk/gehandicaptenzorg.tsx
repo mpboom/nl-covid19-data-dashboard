@@ -214,6 +214,6 @@ const DisabilityCare: FCWithLayout<NationalPageProps> = (props) => {
 
 DisabilityCare.getLayout = getNationalLayout;
 
-export const getStaticProps = getNationalStaticProps;
+export const getStaticProps = getNationalStaticProps();
 
 export default DisabilityCare;

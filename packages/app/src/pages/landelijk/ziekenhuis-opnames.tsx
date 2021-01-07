@@ -175,6 +175,6 @@ const IntakeHospital: FCWithLayout<NationalPageProps> = (props) => {
 
 IntakeHospital.getLayout = getNationalLayout;
 
-export const getStaticProps = getNationalStaticProps;
+export const getStaticProps = getNationalStaticProps();
 
 export default IntakeHospital;
