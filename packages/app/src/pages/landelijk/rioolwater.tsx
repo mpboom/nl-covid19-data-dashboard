@@ -130,10 +130,8 @@ const SewerWater: FCWithLayout<StaticProps<typeof getStaticProps>> = ({
           }}
         >
           <SafetyRegionChoropleth
-            values={choropleth.vr.sewer.map((x) => ({
-              ...x,
-              __color_value: x.average,
-            }))}
+            values={choropleth.vr.sewer}
+            valueProperty="average"
             thresholds={regionThresholds.sewer.average}
             tooltipContent={createSewerRegionalTooltip(
               createSelectRegionHandler(router, 'rioolwater')

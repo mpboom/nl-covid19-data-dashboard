@@ -12,24 +12,30 @@ import { TwoKpiSection } from '~/components-styled/two-kpi-section';
 import { Text } from '~/components-styled/typography';
 import { regionThresholds } from '~/components/choropleth/region-thresholds';
 import { SafetyRegionChoropleth } from '~/components/choropleth/safety-region-choropleth';
-import { createSelectRegionHandler } from '~/components/choropleth/select-handlers/create-select-region-handler';
-import { createInfectedLocationsRegionalTooltip } from '~/components/choropleth/tooltips/region/create-infected-locations-regional-tooltip';
+import { TooltipContent } from '~/components/choropleth/tooltips/tooltipContent';
+import { SEOHead } from '~/components/seoHead';
 import { FCWithLayout } from '~/domain/layout/layout';
 import { getNationalLayout } from '~/domain/layout/national-layout';
-import { SEOHead } from '~/components/seoHead';
 import siteText from '~/locale/index';
-import {
-  getNationalStaticProps,
-  NationalPageProps,
-} from '~/static-props/nl-data';
+import { getNationalStaticProps } from '~/static-props/nl-data';
+import { StaticProps } from '~/static-props/types';
+import { formatNumber, formatPercentage } from '~/utils/formatNumber';
 
 const infectedLocationsText = siteText.verpleeghuis_besmette_locaties;
 const positiveTestedPeopleText =
   siteText.verpleeghuis_positief_geteste_personen;
 const locationDeaths = siteText.verpleeghuis_oversterfte;
 
-const NursingHomeCare: FCWithLayout<NationalPageProps> = (props) => {
-  const { data } = props;
+export const getStaticProps = getNationalStaticProps({
+  choropleth: {
+    vr: (x) => ({ nursing_home: x.nursing_home }),
+  },
+});
+
+const NursingHomeCare: FCWithLayout<StaticProps<typeof getStaticProps>> = (
+  props
+) => {
+  const { data, choropleth } = props;
   const nursinghomeData = data.nursing_home;
 
   const router = useRouter();
@@ -153,12 +159,30 @@ const NursingHomeCare: FCWithLayout<NationalPageProps> = (props) => {
           }}
         >
           <SafetyRegionChoropleth
-            metricName="nursing_home"
-            metricProperty="infected_locations_percentage"
-            tooltipContent={createInfectedLocationsRegionalTooltip(
-              createSelectRegionHandler(router, 'verpleeghuiszorg')
+            values={choropleth.vr.nursing_home.map((x) => ({
+              ...x,
+              __color_value: x.infected_locations_percentage,
+            }))}
+            thresholds={
+              regionThresholds.nursing_home.infected_locations_percentage
+            }
+            onSelect={(x) =>
+              router.push(`/veiligheidsregio/${x.vrcode}/verpleeghuiszorg`)
+            }
+            tooltipContent={(x) => (
+              <TooltipContent
+                title={x.vrname}
+                onSelect={() =>
+                  router.push(`/veiligheidsregio/${x.vrcode}/verpleeghuiszorg`)
+                }
+              >
+                <strong>
+                  {`${formatPercentage(
+                    x.infected_locations_percentage
+                  )}% (${formatNumber(x.infected_locations_total)})`}
+                </strong>
+              </TooltipContent>
             )}
-            onSelect={createSelectRegionHandler(router, 'verpleeghuiszorg')}
           />
         </ChoroplethTile>
 
@@ -221,7 +245,5 @@ const NursingHomeCare: FCWithLayout<NationalPageProps> = (props) => {
 };
 
 NursingHomeCare.getLayout = getNationalLayout;
-
-export const getStaticProps = getNationalStaticProps();
 
 export default NursingHomeCare;

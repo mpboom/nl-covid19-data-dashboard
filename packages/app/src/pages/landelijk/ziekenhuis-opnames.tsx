@@ -25,11 +25,23 @@ import {
   getNationalStaticProps,
   NationalPageProps,
 } from '~/static-props/nl-data';
+import { StaticProps } from '~/static-props/types';
+import { TooltipContent } from '~/components/choropleth/tooltips/tooltipContent';
+import { formatNumber } from '~/utils/formatNumber';
 
 const text = siteText.ziekenhuisopnames_per_dag;
 
-const IntakeHospital: FCWithLayout<NationalPageProps> = (props) => {
-  const { data } = props;
+export const getStaticProps = getNationalStaticProps({
+  choropleth: {
+    vr: ({ hospital_nice }) => ({ hospital_nice }),
+    gm: ({ hospital_nice }) => ({ hospital_nice }),
+  },
+});
+
+const IntakeHospital: FCWithLayout<StaticProps<typeof getStaticProps>> = (
+  props
+) => {
+  const { data, choropleth } = props;
   const router = useRouter();
   const [selectedMap, setSelectedMap] = useState<'municipal' | 'region'>(
     'region'
@@ -117,8 +129,13 @@ const IntakeHospital: FCWithLayout<NationalPageProps> = (props) => {
         >
           {selectedMap === 'municipal' && (
             <MunicipalityChoropleth
-              metricName="hospital_nice"
-              metricProperty="admissions_moving_average"
+              values={choropleth.gm.hospital_nice.map((x) => ({
+                ...x,
+                __color_value: x.admissions_moving_average,
+              }))}
+              thresholds={
+                municipalThresholds.hospital_nice.admissions_moving_average
+              }
               tooltipContent={createMunicipalHospitalAdmissionsTooltip(
                 createSelectMunicipalHandler(router, 'ziekenhuis-opnames')
               )}
@@ -130,8 +147,13 @@ const IntakeHospital: FCWithLayout<NationalPageProps> = (props) => {
           )}
           {selectedMap === 'region' && (
             <SafetyRegionChoropleth
-              metricName="hospital_nice"
-              metricProperty="admissions_moving_average"
+              values={choropleth.vr.hospital_nice.map((x) => ({
+                ...x,
+                __color_value: x.admissions_moving_average,
+              }))}
+              thresholds={
+                regionThresholds.hospital_nice.admissions_moving_average
+              }
               tooltipContent={createRegionHospitalAdmissionsTooltip(
                 createSelectRegionHandler(router, 'ziekenhuis-opnames')
               )}
@@ -174,7 +196,5 @@ const IntakeHospital: FCWithLayout<NationalPageProps> = (props) => {
 };
 
 IntakeHospital.getLayout = getNationalLayout;
-
-export const getStaticProps = getNationalStaticProps();
 
 export default IntakeHospital;

@@ -14,8 +14,10 @@ import { Path } from './path';
 import { ChoroplethThresholdsValue, SafetyRegionProperties } from './shared';
 import { countryGeo, regionGeo } from './topology';
 
-type SafetyRegionChoroplethProps<T> = {
+type SafetyRegionChoroplethProps<T, K> = {
   values: T[];
+  valueProperty: K;
+  getValue: (value: T) => number | null;
   thresholds: ChoroplethThresholdsValue[];
   selected?: string;
   highlightSelection?: boolean;
@@ -38,11 +40,13 @@ type SafetyRegionChoroplethProps<T> = {
  *
  * @param props
  */
-export function SafetyRegionChoropleth<T extends { vrcode: string }>(
-  props: SafetyRegionChoroplethProps<T>
-) {
+export function SafetyRegionChoropleth<
+  T extends { vrcode: string },
+  K extends keyof T
+>(props: SafetyRegionChoroplethProps<T, K>) {
   const {
     values,
+    getValue,
     thresholds,
     selected,
     highlightSelection = true,
@@ -57,7 +61,8 @@ export function SafetyRegionChoropleth<T extends { vrcode: string }>(
 
   const { getChoroplethValue, hasData } = useSafetyRegionData(
     regionGeo,
-    values
+    values,
+    getValue
   );
 
   const getFillColor = useChoroplethColorScale(getChoroplethValue, thresholds);

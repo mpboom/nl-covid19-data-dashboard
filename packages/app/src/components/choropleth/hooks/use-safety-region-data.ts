@@ -34,7 +34,8 @@ type UseRegionDataReturnValue<T> = {
 
 export function useSafetyRegionData<T extends { vrcode: string }>(
   featureCollection: RegionGeoJSON,
-  values: T[]
+  values: T[],
+  getValue: (value: T) => number | null
 ): UseRegionDataReturnValue<RegionChoroplethValue & T> {
   return useMemo(() => {
     const propertyData = featureCollection.features.reduce(
@@ -67,6 +68,10 @@ export function useSafetyRegionData<T extends { vrcode: string }>(
          * tooltop function.
          */
         ...value,
+        /**
+         * get and set the value which the choropleth will be drawn with
+         */
+        __color_value: getValue(value),
       };
 
       return set(acc, value.vrcode, choroplethValue);
@@ -83,5 +88,5 @@ export function useSafetyRegionData<T extends { vrcode: string }>(
     };
 
     return { getChoroplethValue, hasData };
-  }, [values, featureCollection.features]);
+  }, [values, featureCollection.features, getValue]);
 }
