@@ -1,5 +1,5 @@
 import css from '@styled-system/css';
-import React from 'react';
+import React, { forwardRef } from 'react';
 import { Box } from './base';
 import { Heading, HeadingProps } from './typography';
 
@@ -43,25 +43,28 @@ function Icon({
   );
 }
 
-export function HeadingWithIcon(props: HeadingWithIconProps) {
-  const { icon, title, subtitle, headingLevel = 3, ...headingProps } = props;
+export const HeadingWithIcon = forwardRef<HTMLDivElement, HeadingWithIconProps>(
+  (props, ref) => {
+    const { icon, title, subtitle, headingLevel = 3, ...headingProps } = props;
 
-  return (
-    <Box
-      display="flex"
-      flexDirection="row"
-      flexWrap="nowrap"
-      alignItems="center"
-      mb={-2}
-    >
-      <Icon small={headingLevel > 2}>{icon}</Icon>
+    return (
+      <Box
+        ref={ref}
+        display="flex"
+        flexDirection="row"
+        flexWrap="nowrap"
+        alignItems="center"
+        mb={-2}
+      >
+        <Icon small={headingLevel > 2}>{icon}</Icon>
 
-      <Box>
-        <Heading level={headingLevel} mb={0} {...headingProps}>
-          {title}
-        </Heading>
-        {subtitle}
+        <Box>
+          <Heading level={headingLevel} mb={0} {...headingProps}>
+            {title}
+          </Heading>
+          {subtitle}
+        </Box>
       </Box>
-    </Box>
-  );
-}
+    );
+  }
+);

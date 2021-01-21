@@ -62,10 +62,7 @@ type TProps<T1, T3> = {
  * @param props
  */
 
-export function Choropleth<T1, T3>({
-  getTooltipContent,
-  ...props
-}: TProps<T1, T3>) {
+export function Choropleth<T1, T3>(props: TProps<T1, T3>) {
   const [tooltip, setTooltip] = useState<TooltipSettings>();
   const isTouch = useIsTouchDevice();
 
@@ -82,15 +79,7 @@ export function Choropleth<T1, T3>({
         <div
           ref={tooltipRef}
           style={{ pointerEvents: isTouch ? 'all' : 'none' }}
-        >
-          <Tooltip
-            left={tooltip.left}
-            top={tooltip.top}
-            setTooltip={setTooltip}
-          >
-            {getTooltipContent(tooltip.data)}
-          </Tooltip>
-        </div>
+        ></div>
       )}
     </>
   );
@@ -98,12 +87,8 @@ export function Choropleth<T1, T3>({
 
 type FitSize = [[number, number], any];
 
-type ChoroplethMapProps<T1, T3> = Omit<TProps<T1, T3>, 'getTooltipContent'> & {
-  setTooltip: (tooltip: TooltipSettings | undefined) => void;
-};
-
 const ChoroplethMap: <T1, T3>(
-  props: ChoroplethMapProps<T1, T3> & {
+  props: TProps<T1, T3> & {
     hoverRef: React.RefObject<SVGGElement>;
   }
 ) => JSX.Element | null = memo((props) => {
@@ -114,8 +99,6 @@ const ChoroplethMap: <T1, T3>(
     dimensions,
     featureCallback,
     hoverCallback,
-    onPathClick,
-    setTooltip,
     hoverRef,
     description,
   } = props;
@@ -123,8 +106,8 @@ const ChoroplethMap: <T1, T3>(
   const clipPathId = useUniqueId();
   const dataDescriptionId = useUniqueId();
 
-  const timeout = useRef(-1);
-  const isTouch = useIsTouchDevice();
+  // const timeout = useRef(-1);
+  // const isTouch = useIsTouchDevice();
 
   const {
     width = 0,
@@ -146,11 +129,11 @@ const ChoroplethMap: <T1, T3>(
         width="100%"
         height="100%"
         css={css({ display: 'block', bg: 'transparent' })}
-        onMouseMove={createSvgMouseOverHandler(timeout, setTooltip)}
-        onMouseOut={
-          isTouch ? undefined : createSvgMouseOutHandler(timeout, setTooltip)
-        }
-        onClick={createSvgClickHandler(onPathClick, setTooltip, isTouch)}
+        // onMouseMove={createSvgMouseOverHandler(timeout, setTooltip)}
+        // onMouseOut={
+        //   isTouch ? undefined : createSvgMouseOutHandler(timeout, setTooltip)
+        // }
+        // onClick={createSvgClickHandler(onPathClick, setTooltip, isTouch)}
         data-cy="choropleth-map"
         aria-labelledby={dataDescriptionId}
       >
@@ -234,67 +217,67 @@ function MercatorGroup<G extends Geometry, P>(props: MercatorGroupProps<G, P>) {
   );
 }
 
-const createSvgClickHandler = (
-  onPathClick: (id: string) => void,
-  setTooltip: (settings: TooltipSettings | undefined) => void,
-  isTouch: boolean
-) => {
-  return (event: React.MouseEvent) => {
-    const elm = event.target as HTMLElement | SVGElement;
-    const id = elm.getAttribute('data-id');
+// const createSvgClickHandler = (
+//   onPathClick: (id: string) => void,
+//   setTooltip: (settings: TooltipSettings | undefined) => void,
+//   isTouch: boolean
+// ) => {
+//   return (event: React.MouseEvent) => {
+//     const elm = event.target as HTMLElement | SVGElement;
+//     const id = elm.getAttribute('data-id');
 
-    if (id) {
-      if (isTouch) {
-        positionTooltip(event, setTooltip, id);
-      } else {
-        onPathClick(id);
-      }
-    }
-  };
-};
+//     if (id) {
+//       if (isTouch) {
+//         positionTooltip(event, setTooltip, id);
+//       } else {
+//         onPathClick(id);
+//       }
+//     }
+//   };
+// };
 
-const createSvgMouseOverHandler = (
-  timeout: MutableRefObject<number>,
-  setTooltip: (settings: TooltipSettings | undefined) => void
-) => {
-  return (event: React.MouseEvent) => {
-    const elm = event.target as HTMLElement | SVGElement;
-    const id = elm.getAttribute('data-id');
+// const createSvgMouseOverHandler = (
+//   timeout: MutableRefObject<number>,
+//   setTooltip: (settings: TooltipSettings | undefined) => void
+// ) => {
+//   return (event: React.MouseEvent) => {
+//     const elm = event.target as HTMLElement | SVGElement;
+//     const id = elm.getAttribute('data-id');
 
-    if (id) {
-      if (timeout.current > -1) {
-        clearTimeout(timeout.current);
-        timeout.current = -1;
-      }
+//     if (id) {
+//       if (timeout.current > -1) {
+//         clearTimeout(timeout.current);
+//         timeout.current = -1;
+//       }
 
-      positionTooltip(event, setTooltip, id);
-    }
-  };
-};
+//       positionTooltip(event, setTooltip, id);
+//     }
+//   };
+// };
 
-const positionTooltip = (
-  event: React.MouseEvent,
-  setTooltip: (settings: TooltipSettings | undefined) => void,
-  id: string
-) => {
-  const coords = localPoint(event);
+// const positionTooltip = (
+//   event: React.MouseEvent,
+//   setTooltip: (settings: TooltipSettings | undefined) => void,
+//   id: string
+// ) => {
+//   const coords = localPoint(event);
 
-  if (coords) {
-    setTooltip({
-      left: coords.x + 5,
-      top: coords.y + 5,
-      data: id,
-    });
-  }
-};
+//   if (coords) {
+//     setTooltip({
+//       left: coords.x + 5,
+//       top: coords.y + 5,
+//       data: id,
+//     });
+//   }
+// };
 
-const createSvgMouseOutHandler = (
-  timeout: MutableRefObject<number>,
-  setTooltip: (settings: TooltipSettings | undefined) => void
-) => {
-  return () => {
-    if (timeout.current < 0) {
-      timeout.current = window.setTimeout(() => setTooltip(undefined), 500);
-    }
-  };
-};
+// const createSvgMouseOutHandler = (
+//   timeout: MutableRefObject<number>,
+//   setTooltip: (settings: TooltipSettings | undefined) => void
+// ) => {
+//   return () => {
+//     if (timeout.current < 0) {
+//       timeout.current = window.setTimeout(() => setTooltip(undefined), 500);
+//     }
+//   };
+// };

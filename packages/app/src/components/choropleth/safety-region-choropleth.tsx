@@ -1,9 +1,14 @@
+import {
+  Regions,
+  RegionsMetricName,
+  SafetyRegionProperties,
+} from '@corona-dashboard/common';
 import css from '@styled-system/css';
 import { Feature, MultiPolygon } from 'geojson';
 import { ReactNode, useCallback } from 'react';
 import { AspectRatio } from '~/components-styled/aspect-ratio';
 import { regionThresholds } from '~/components/choropleth/region-thresholds';
-import { Regions } from '@corona-dashboard/common';
+import { useTooltip } from '~/lib/tooltip';
 import { Choropleth } from './choropleth';
 import {
   useChartDimensions,
@@ -14,10 +19,6 @@ import {
 import { useChoroplethDataDescription } from './hooks/use-choropleth-data-description';
 import { getDataThresholds } from './legenda/utils';
 import { Path } from './path';
-import {
-  RegionsMetricName,
-  SafetyRegionProperties,
-} from '@corona-dashboard/common';
 import { countryGeo, regionGeo } from './topology';
 
 type SafetyRegionChoroplethProps<T, K extends RegionsMetricName> = {
@@ -89,6 +90,8 @@ export function SafetyRegionChoropleth<T, K extends RegionsMetricName>(
     selectedThreshold
   );
 
+  const Tooltip = useTooltip();
+
   const featureCallback = useCallback(
     (feature: Feature<MultiPolygon, SafetyRegionProperties>, path: string) => {
       const { vrcode } = feature.properties;
@@ -112,23 +115,35 @@ export function SafetyRegionChoropleth<T, K extends RegionsMetricName>(
     [getFillColor, hasData]
   );
 
+  const getTooltipContent = useCallback(
+    (id: string) => {
+      if (tooltipContent) {
+        const data = getChoroplethValue(id);
+        return tooltipContent(data as any);
+      }
+      return null;
+    },
+    [getChoroplethValue, tooltipContent]
+  );
+
   const hoverCallback = useCallback(
     (feature: Feature<MultiPolygon, SafetyRegionProperties>, path: string) => {
       const { vrcode } = feature.properties;
       const isSelected = vrcode === selected && highlightSelection;
 
       return (
-        <Path
-          hoverable
-          id={vrcode}
-          key={vrcode}
-          d={path}
-          stroke={isSelected ? '#000' : undefined}
-          strokeWidth={isSelected ? 3 : undefined}
-        />
+        <Tooltip key={vrcode} followCursor content={getTooltipContent(vrcode)}>
+          <Path
+            hoverable
+            id={vrcode}
+            d={path}
+            stroke={isSelected ? '#000' : undefined}
+            strokeWidth={isSelected ? 3 : undefined}
+          />
+        </Tooltip>
       );
     },
-    [selected, highlightSelection]
+    [selected, highlightSelection, Tooltip, getTooltipContent]
   );
 
   const onClick = (id: string) => {
@@ -138,16 +153,9 @@ export function SafetyRegionChoropleth<T, K extends RegionsMetricName>(
     }
   };
 
-  const getTooltipContent = (id: string) => {
-    if (tooltipContent) {
-      const data = getChoroplethValue(id);
-      return tooltipContent(data as any);
-    }
-    return null;
-  };
-
   return (
     <div ref={ref} css={css({ position: 'relative', bg: 'transparent' })}>
+      1234
       <AspectRatio ratio={1 / ratio}>
         <Choropleth
           description={dataDescription}

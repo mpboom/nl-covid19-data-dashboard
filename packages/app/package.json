@@ -11,6 +11,7 @@
     "@sanity/block-content-to-react": "^2.0.7",
     "@sanity/client": "^2.1.4",
     "@styled-system/css": "^5.1.5",
+    "@tippyjs/react": "^4.2.0",
     "@visx/axis": "1.1.0",
     "@visx/event": "1.0.0",
     "@visx/geo": "1.0.0",

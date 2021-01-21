@@ -6,6 +6,7 @@ import { ThemeProvider } from 'styled-components';
 import '~/components/comboBox/comboBox.scss';
 import { FCWithLayout } from '~/domain/layout/layout';
 import * as piwik from '~/lib/piwik';
+import { TooltipContext } from '~/lib/tooltip';
 import { GlobalStyle } from '~/style/global-style';
 import theme from '~/style/theme';
 
@@ -37,8 +38,10 @@ export default function App(props: AppPropsWithLayout) {
 
   return (
     <ThemeProvider theme={theme}>
-      <GlobalStyle />
-      {pageWithLayout}
+      <TooltipContext>
+        <GlobalStyle />
+        {pageWithLayout}
+      </TooltipContext>
     </ThemeProvider>
   );
 }

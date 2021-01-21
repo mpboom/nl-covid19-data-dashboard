@@ -1,4 +1,5 @@
 import css from '@styled-system/css';
+import { forwardRef } from 'react';
 import styled from 'styled-components';
 
 interface PathProps {
@@ -10,26 +11,22 @@ interface PathProps {
   hoverable?: boolean;
 }
 
-export function Path({
-  id,
-  d,
-  fill,
-  stroke,
-  strokeWidth,
-  hoverable,
-}: PathProps) {
-  return (
-    <StyledPath
-      d={d}
-      shapeRendering="optimizeQuality"
-      data-id={id}
-      hoverable={hoverable}
-      fill={fill}
-      stroke={stroke}
-      strokeWidth={strokeWidth}
-    />
-  );
-}
+export const Path = forwardRef<SVGPathElement, PathProps>(
+  ({ id, d, fill, stroke, strokeWidth, hoverable }, ref) => {
+    return (
+      <StyledPath
+        ref={ref}
+        d={d}
+        shapeRendering="optimizeQuality"
+        data-id={id}
+        hoverable={hoverable}
+        fill={fill}
+        stroke={stroke}
+        strokeWidth={strokeWidth}
+      />
+    );
+  }
+);
 
 const StyledPath = styled.path<{ hoverable?: boolean }>(
   (x) =>
