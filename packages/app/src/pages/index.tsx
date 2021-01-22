@@ -1,5 +1,10 @@
+import { EscalationLevels } from '@corona-dashboard/common';
+// import { useTooltip } from '~/lib/tooltip';
+import Tippy, { useSingleton } from '@tippyjs/react';
 import { useRouter } from 'next/router';
 import { useState } from 'react';
+import 'tippy.js/dist/tippy.css';
+import 'tippy.js/themes/light.css';
 import Notification from '~/assets/notification.svg';
 import { AnchorTile } from '~/components-styled/anchor-tile';
 import { Box, Spacer } from '~/components-styled/base';
@@ -29,7 +34,6 @@ import {
   getText,
 } from '~/static-props/get-data';
 import theme from '~/style/theme';
-import { EscalationLevels } from '@corona-dashboard/common';
 import { assert } from '~/utils/assert';
 import { replaceVariablesInText } from '~/utils/replaceVariablesInText';
 
@@ -69,8 +73,15 @@ const Home: FCWithLayout<typeof getStaticProps> = (props) => {
     'municipal'
   );
 
+  // const Tooltip = useTooltip();
+
+  const [source, target] = useSingleton();
+  const [x, setX] = useState(true);
+
   return (
     <TileList>
+      <Tippy singleton={source} theme="light" />
+
       <Box>
         <CategoryHeading level={1} hide={true}>
           {text.nationaal_layout.headings.algemeen}
@@ -82,20 +93,45 @@ const Home: FCWithLayout<typeof getStaticProps> = (props) => {
         />
       </Box>
 
-      <AnchorTile
-        title={text.notificatie.titel}
-        href={text.notificatie.link.href}
-        label={text.notificatie.link.text}
-        external
-        shadow
-      >
-        <Text>
-          {replaceVariablesInText(
-            text.notificatie.bericht,
-            getEscalationCounts(choropleth.vr.escalation_levels)
-          )}
-        </Text>
-      </AnchorTile>
+      <Tippy content="toggle maar">
+        <button onClick={(_) => setX(!x)}>klik</button>
+      </Tippy>
+
+      {x && (
+        <AnchorTile
+          title={text.notificatie.titel}
+          href={text.notificatie.link.href}
+          label={text.notificatie.link.text}
+          external
+          shadow
+        >
+          <Text>
+            We zien een{' '}
+            <Tippy
+              singleton={target}
+              content='gematigd betekent zoiets als "meh nie zo heel erg"'
+            >
+              <span>gematigd</span>
+            </Tippy>{' '}
+            <Tippy singleton={target} content="niet-negatief">
+              <span>positief</span>
+            </Tippy>{' '}
+            beeld in de week van 13 tot en met 19 januari, een effect van de
+            lockdown die op 15{' '}
+            <Tippy singleton={target} content="dit is de maand na november">
+              <span>december</span>
+            </Tippy>{' '}
+            inging.
+          </Text>
+
+          <Text>
+            {replaceVariablesInText(
+              text.notificatie.bericht,
+              getEscalationCounts(choropleth.vr.escalation_levels)
+            )}
+          </Text>
+        </AnchorTile>
+      )}
 
       {text.regionaal_index.belangrijk_bericht && (
         <>

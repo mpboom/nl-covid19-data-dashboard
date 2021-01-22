@@ -1,15 +1,13 @@
 import css from '@styled-system/css';
-import { localPoint } from '@visx/event';
 import { Mercator } from '@visx/geo';
 import { Feature, FeatureCollection, Geometry, MultiPolygon } from 'geojson';
-import { memo, MutableRefObject, ReactNode, useRef, useState } from 'react';
+import { memo, ReactNode, useRef, useState } from 'react';
 import { useIsTouchDevice } from '~/utils/use-is-touch-device';
 import { useOnClickOutside } from '~/utils/use-on-click-outside';
+import { useUniqueId } from '~/utils/useUniqueId';
 import { TCombinedChartDimensions } from './hooks/use-chart-dimensions';
 import { Path } from './path';
-import { Tooltip } from './tooltips/tooltipContainer';
 import { countryGeo } from './topology';
-import { useUniqueId } from '~/utils/useUniqueId';
 
 export type TooltipSettings = {
   left: number;
@@ -73,13 +71,13 @@ export function Choropleth<T1, T3>(props: TProps<T1, T3>) {
 
   return (
     <>
-      <ChoroplethMap {...props} setTooltip={setTooltip} hoverRef={hoverRef} />
+      <ChoroplethMap {...props} hoverRef={hoverRef} />
 
       {tooltip && (
         <div
           ref={tooltipRef}
           style={{ pointerEvents: isTouch ? 'all' : 'none' }}
-        ></div>
+        />
       )}
     </>
   );

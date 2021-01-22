@@ -36,6 +36,11 @@ export default function App(props: AppPropsWithLayout) {
 
   const pageWithLayout = getLayout(<Component {...pageProps} />, pageProps);
 
+  useEffect(() => {
+    console.log('mount');
+    return () => console.log('unmount');
+  }, []);
+
   return (
     <ThemeProvider theme={theme}>
       <TooltipContext>
