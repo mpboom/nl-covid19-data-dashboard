@@ -1,7 +1,6 @@
 const sharp = require('sharp');
-const fs = require('fs');
+const fs = require('fs').promises;
 const path = require('path');
-
 import { imageResizeTargets } from '@corona-dashboard/common/src/config';
 
 /**
@@ -14,49 +13,35 @@ import { imageResizeTargets } from '@corona-dashboard/common/src/config';
 
 const walkPath = '../app/public/cms';
 
-function walk(dir, done) {
-  fs.readdir(dir, function (error, list) {
-    if (error) {
-      return done(error);
-    }
+async function processImages(fileList: any[]) {
+  return fileList
+    .map((f) => path.join(walkPath, f))
+    .map(async (file) => {
+      const stat = await fs.stat(file);
 
-    var i = 0;
-
-    (function next() {
-      var file = list[i++];
-
-      if (!file) {
-        return done(null);
+      if (stat.isDirectory()) {
+        return walk(file);
       }
 
-      file = dir + '/' + file;
+      const ext = path.extname(file);
+      const filename = path.basename(file).split('.').slice(0, -1).join('.');
+      console.log(`Now resizing: ${file}`);
 
-      fs.stat(file, function (error, stat) {
-        if (stat && stat.isDirectory()) {
-          walk(file, function (error) {
-            next();
-          });
-        } else {
-          const ext = path.extname(file);
-          const filename = path
-            .basename(file)
-            .split('.')
-            .slice(0, -1)
-            .join('.');
-          console.log(`Now resizing: ${file}`);
-
-          imageResizeTargets.forEach((size) => {
-            const output = `../app/public/cms/${filename}-${size}${ext}`;
-            sharp(file)
-              .resize({ width: size, withoutEnlargement: true })
-              .toFile(output);
-          });
-
-          next();
-        }
+      return imageResizeTargets.map((size) => {
+        const output = `../app/public/cms/${filename}-${size}${ext}`;
+        return sharp(file)
+          .resize({ width: size, withoutEnlargement: true })
+          .toBuffer()
+          .then((data) => fs.writeFile(output, data));
       });
-    })();
-  });
+    });
+}
+
+async function walk(dir) {
+  const fileList = await fs.readdir(dir);
+
+  const promisedResizes = processImages(fileList);
+  return Promise.all(promisedResizes.flat());
 }
 
 console.log('-------------------------------------------------------------');
@@ -65,10 +50,8 @@ console.log('-------------------------------------------------------------');
 
 // Walk through the sanity image directory and report
 // that we're done or throw an error
-walk(walkPath, function (error) {
-  if (error) {
-    throw error;
-  } else {
+walk(walkPath)
+  .then(() => {
     console.log(
       '-------------------------------------------------------------'
     );
@@ -76,5 +59,7 @@ walk(walkPath, function (error) {
     console.log(
       '-------------------------------------------------------------'
     );
-  }
-});
+  })
+  .catch((error) => {
+    throw error;
+  });
