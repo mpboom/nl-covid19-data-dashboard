@@ -11,6 +11,8 @@ import { imageResizeTargets } from '@corona-dashboard/common/src/config';
  *
  */
 
+sharp.concurrency(10);
+
 const walkPath = '../app/public/cms';
 
 async function processImages(fileList: any[]) {
@@ -28,11 +30,10 @@ async function processImages(fileList: any[]) {
       console.log(`Now resizing: ${file}`);
 
       return imageResizeTargets.map((size) => {
-        const output = `../app/public/cms/${filename}-${size}${ext}`;
+        const output = path.join(walkPath, `${filename}-${size}${ext}`);
         return sharp(file)
           .resize({ width: size, withoutEnlargement: true })
-          .toBuffer()
-          .then((data) => fs.writeFile(output, data));
+          .toFile(output);
       });
     });
 }
