@@ -6,3 +6,8 @@ if (process.env.NODE_ENV === 'development') {
    */
   require('@webcomponents/shadydom');
 }
+
+if (!window.ResizeObserver) {
+  const ResizeObserver = require('resize-observer-polyfill').default;
+  window.ResizeObserver = ResizeObserver;
+}
