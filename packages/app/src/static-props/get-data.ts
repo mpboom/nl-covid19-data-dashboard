@@ -49,7 +49,15 @@ export function createGetContent<T>(
     const rawContent = await client.fetch<T>(query);
 
     const content = localize(rawContent ?? {}, [targetLanguage, 'nl']) as T;
+    console.log(`
+query:
+${query}
+`);
 
+    console.log(`
+content:
+${JSON.stringify(content, null, 2)}
+`);
     return { content };
   };
 }
