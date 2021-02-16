@@ -46,13 +46,20 @@ export function createGetContent<T>(
       typeof queryOrQueryGetter === 'function'
         ? queryOrQueryGetter(context)
         : queryOrQueryGetter;
-    const rawContent = await client.fetch<T>(query);
 
-    const content = localize(rawContent ?? {}, [targetLanguage, 'nl']) as T;
     console.log(`
-query:
+🔥🔥🔥🔥 query:
 ${query}
 `);
+
+    const rawContent = await client.fetch<T>(query);
+
+    console.log(`
+raw-content:
+${JSON.stringify(rawContent, null, 2)}
+`);
+
+    const content = localize(rawContent ?? {}, [targetLanguage, 'nl']) as T;
 
     console.log(`
 content:
