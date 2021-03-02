@@ -98,6 +98,9 @@ export function getImageProps<T extends ImageBlock>(
   const { asset, alt } = node;
   const { metadata } = asset;
 
+  console.log(node);
+  console.log(options);
+
   const {
     defaultWidth = node.asset.metadata.dimensions.width,
     sizes,

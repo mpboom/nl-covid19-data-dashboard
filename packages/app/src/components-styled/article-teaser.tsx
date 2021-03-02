@@ -8,6 +8,8 @@ import { Link } from '~/utils/link';
 import { BackgroundImage } from './background-image';
 import { Box } from './base';
 import { Heading, InlineText, Text } from './typography';
+import { SanityImage } from '~/components-styled/cms/sanity-image';
+import { getImageProps } from '~/lib/sanity';
 
 export type ArticleSummary = Pick<
   Article,
@@ -98,16 +100,20 @@ function CoverImage({ height, image }: CoverImageProps) {
 
   const url = getImageSrc(image.asset, 700);
 
+  console.log('testing stfu yooo');
+
   return (
     <Box height={height} overflow="hidden">
-      <BackgroundImage
+      {/* <BackgroundImage
         height={height}
         backgroundImage={`url(${url})`}
         backgroundPosition={bgPosition}
         backgroundRepeat="no-repeat"
         backgroundSize="cover"
         aria-label={image.alt}
-      />
+      /> */}
+
+      <SanityImage {...getImageProps(image, {})} />
     </Box>
   );
 }

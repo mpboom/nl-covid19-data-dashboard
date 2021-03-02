@@ -1,10 +1,17 @@
 import { Image } from '~/components-styled/image';
+import styled from 'styled-components';
 
 type SanityImageProps = {
   src: string;
   srcSet?: string;
   extension: string;
+  backgroundPosition?: string;
 };
+
+const BackgroundImage = styled(Image)`
+  object-fit: cover;
+  object-position: ${(props) => props.objectPosition || 'black'};
+`;
 
 export function SanityImage(props: SanityImageProps) {
   const { src, srcSet, extension, ...imageProps } = props;
