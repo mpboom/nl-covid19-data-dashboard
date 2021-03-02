@@ -211,7 +211,7 @@ export function ContentHeader(props: ContentHeaderProps) {
             </Box>
           )}
 
-          {children}
+          <Box px={{ md: hasIcon ? 5 : undefined }}>{children}</Box>
         </Box>
       </ContainerComponent>
 

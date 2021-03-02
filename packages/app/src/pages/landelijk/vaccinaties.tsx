@@ -8,13 +8,11 @@ import { css } from '@styled-system/css';
 import { ParentSize } from '@visx/responsive';
 import { useState } from 'react';
 import styled from 'styled-components';
-import VaccinatieIcon from '~/assets/vaccinaties.svg';
 import { AreaChart } from '~/components-styled/area-chart';
 import { ArticleStrip } from '~/components-styled/article-strip';
 import { ArticleSummary } from '~/components-styled/article-teaser';
 import { Box, Spacer } from '~/components-styled/base';
 import { ChartTile } from '~/components-styled/chart-tile';
-import { ContentHeader } from '~/components-styled/content-header';
 import { KpiTile } from '~/components-styled/kpi-tile';
 import { KpiValue } from '~/components-styled/kpi-value';
 import { Legenda } from '~/components-styled/legenda';
@@ -27,11 +25,17 @@ import { Heading, InlineText, Text } from '~/components-styled/typography';
 import { VisuallyHidden } from '~/components-styled/visually-hidden';
 import { FCWithLayout } from '~/domain/layout/layout';
 import { getNationalLayout } from '~/domain/layout/national-layout';
+import {
+  MilestonesView,
+  MilestoneViewProps,
+} from '~/domain/vaccine/milestones-view';
 import { createDeliveryTooltipFormatter } from '~/domain/vaccines/create-delivery-tooltip-formatter';
 import { useVaccineDeliveryData } from '~/domain/vaccines/use-vaccine-delivery-data';
 import { useVaccineNames } from '~/domain/vaccines/use-vaccine-names';
+import { VaccinesContentHeader } from '~/domain/vaccines/vaccines-content-header';
 import siteText from '~/locale/index';
 import { createPageArticlesQuery } from '~/queries/create-page-articles-query';
+import { vaccineMilestonesQuery } from '~/queries/vaccine-milestones-query';
 import { createGetStaticProps } from '~/static-props/create-get-static-props';
 import {
   createGetContent,
@@ -43,12 +47,6 @@ import { colors } from '~/style/theme';
 import { formatDateFromSeconds } from '~/utils/formatDate';
 import { formatNumber, formatPercentage } from '~/utils/formatNumber';
 import { replaceVariablesInText } from '~/utils/replaceVariablesInText';
-import { vaccineMilestonesQuery } from '~/queries/vaccine-milestones-query';
-import {
-  MilestonesView,
-  MilestoneViewProps,
-} from '~/domain/vaccine/milestones-view';
-import { replaceComponentsInText } from '~/utils/replace-components-in-text';
 
 export const getStaticProps = createGetStaticProps(
   getLastGeneratedDate,
@@ -99,37 +97,7 @@ const VaccinationPage: FCWithLayout<typeof getStaticProps> = ({
         description={text.metadata.description}
       />
       <TileList>
-        <ContentHeader
-          isTileLayout
-          title={text.title}
-          icon={<VaccinatieIcon />}
-          subtitle={text.description}
-          reference={text.reference}
-          metadata={{
-            datumsText: text.datums,
-            dateOrRange: data.vaccine_administered_total.last_value.date_unix,
-            dateOfInsertionUnix:
-              data.vaccine_administered_total.last_value.date_of_insertion_unix,
-            dataSources: [],
-          }}
-        >
-          <Text fontSize="1.625rem">
-            {replaceComponentsInText(
-              text.current_amount_of_administrations_text,
-              {
-                amount: (
-                  <InlineText color="data.primary" fontWeight="bold">
-                    {formatPercentage(
-                      data.vaccine_administered_total.last_value.estimated /
-                        1_000_000
-                    )}{' '}
-                    {siteText.common.miljoen}
-                  </InlineText>
-                ),
-              }
-            )}
-          </Text>
-        </ContentHeader>
+        <VaccinesContentHeader text={text} data={data} />
 
         <ArticleStrip articles={content.highlight.articles} />
 
