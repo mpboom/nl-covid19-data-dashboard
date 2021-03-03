@@ -48,6 +48,8 @@ import {
   MilestonesView,
   MilestoneViewProps,
 } from '~/domain/vaccine/milestones-view';
+import { CounterClock } from '~/domain/vaccine/counter-clock';
+import { Tile } from '~/components-styled/tile';
 
 export const getStaticProps = createGetStaticProps(
   getLastGeneratedDate,
@@ -114,6 +116,10 @@ const VaccinationPage: FCWithLayout<typeof getStaticProps> = ({
         />
 
         <ArticleStrip articles={content.highlight.articles} />
+
+        <Tile>
+          <CounterClock />
+        </Tile>
 
         <TwoKpiSection>
           <KpiTile
