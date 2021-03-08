@@ -22,7 +22,7 @@ const config = {
    * Authenticated request (like preview) will always bypass the CDN
    **/
 };
-const client = sanityClient(config);
+// const client = sanityClient(config);
 
 // regioData being generated as we can't import an ES export into CommonJS
 const regioData = [...Array(25).keys()].map(
@@ -43,7 +43,10 @@ const generateSitemap = async function (locale) {
     'editorials': *[_type == 'editorial'] {"slug":slug.current},
   }`;
 
-  const slugsData = await client.fetch(slugsQuery);
+  const slugsData = {
+    articles: [],
+    editorials: [],
+  };
 
   const domain = `${
     process.env.NEXT_PUBLIC_LOCALE === 'en' ? 'government' : 'rijksoverheid'

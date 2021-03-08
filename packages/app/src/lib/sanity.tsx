@@ -28,7 +28,7 @@ const config = {
 export const PortableText = BlockContent;
 
 // Set up the client for fetching data in the getProps page functions
-export const client = sanityClient(config);
+// export const client = sanityClient(config);
 
 // const builder = imageUrlBuilder(client);
 /**

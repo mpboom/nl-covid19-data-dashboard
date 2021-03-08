@@ -99,8 +99,6 @@ const VaccinationPage: FCWithLayout<typeof getStaticProps> = ({
       <TileList>
         <VaccinePageIntroduction data={data} text={text} />
 
-        <ArticleStrip articles={content.highlight.articles} />
-
         <TwoKpiSection>
           <KpiTile
             title={text.gezette_prikken.title}
@@ -335,13 +333,6 @@ const VaccinationPage: FCWithLayout<typeof getStaticProps> = ({
             </ParentSize>
           </Box>
         </ChartTile>
-
-        <MilestonesView
-          title={milestones.title}
-          description={milestones.description}
-          milestones={milestones.milestones}
-          expectedMilestones={milestones.expectedMilestones}
-        />
 
         <ChartTile
           title={text.grafiek_draagvlak.titel}

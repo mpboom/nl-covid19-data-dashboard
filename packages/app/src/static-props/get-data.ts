@@ -46,7 +46,7 @@ export function createGetContent<T>(
       typeof queryOrQueryGetter === 'function'
         ? queryOrQueryGetter(context)
         : queryOrQueryGetter;
-    const rawContent = await client.fetch<T>(query);
+    const rawContent = null;
 
     const content = localize(rawContent ?? {}, [targetLanguage, 'nl']) as T;
 
