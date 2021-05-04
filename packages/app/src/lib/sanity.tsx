@@ -1,12 +1,21 @@
 // lib/sanity.ts
-import { imageResizeTargets } from '@corona-dashboard/common';
+import { assert, imageResizeTargets } from '@corona-dashboard/common';
 import BlockContent from '@sanity/block-content-to-react';
-import sanityClient from '@sanity/client';
-import { LanguageKey } from '~/locale';
+import { ClientConfig, SanityClient } from '@sanity/client';
 import { ImageBlock, SanityFileProps, SanityImageProps } from '~/types/cms';
-import { findClosestSize } from '~/utils/findClosestSize';
+import { findClosestSize } from '~/utils/find-closest-size';
 
-const config = {
+assert(
+  process.env.NEXT_PUBLIC_SANITY_DATASET,
+  'NEXT_PUBLIC_SANITY_DATASET is undefined'
+);
+
+assert(
+  process.env.NEXT_PUBLIC_SANITY_PROJECT_ID,
+  'NEXT_PUBLIC_SANITY_PROJECT_ID is undefined'
+);
+
+const config: ClientConfig = {
   /**
    * Find your project ID and dataset in `sanity.json` in your studio project.
    * These are considered “public”, but you can use environment variables
@@ -14,9 +23,11 @@ const config = {
    *
    * https://nextjs.org/docs/basic-features/environment-variables
    **/
-  dataset: process.env.NEXT_PUBLIC_SANITY_DATASET || 'production',
-  projectId: process.env.NEXT_PUBLIC_SANITY_PROJECT_ID || '',
+  dataset: process.env.NEXT_PUBLIC_SANITY_DATASET,
+  projectId: process.env.NEXT_PUBLIC_SANITY_PROJECT_ID,
   useCdn: process.env.NODE_ENV === 'production',
+  apiVersion: '2021-03-25',
+  withCredentials: process.env.NEXT_PUBLIC_HOT_RELOAD_LOKALIZE === '1',
   /**
    * Set useCdn to `false` if your application require the freshest possible
    * data always (potentially slightly slower and a bit more expensive).
@@ -27,8 +38,14 @@ const config = {
 // Set up Portable Text serialization
 export const PortableText = BlockContent;
 
-// Set up the client for fetching data in the getProps page functions
-export const client = sanityClient(config);
+// Set up the client for fetching data
+let clientInstance: SanityClient | undefined;
+export async function getClient() {
+  if (clientInstance) return clientInstance;
+
+  clientInstance = (await import('@sanity/client')).default(config);
+  return clientInstance;
+}
 
 // const builder = imageUrlBuilder(client);
 /**
@@ -39,7 +56,7 @@ export const client = sanityClient(config);
  **/
 // export const urlFor = (source: SanityImageSource) => builder.image(source);
 
-export function localize<T>(value: T | T[], languages: LanguageKey[]): T {
+export function localize<T>(value: T | T[], languages: string[]): T {
   const anyValue = value as any;
 
   if (Array.isArray(value)) {
@@ -95,12 +112,12 @@ export function getImageProps<T extends ImageBlock>(
   node: T,
   options: ImageProps
 ) {
-  const { asset, alt } = node;
+  const { asset, alt = '' } = node;
   const { metadata } = asset;
 
   const {
     defaultWidth = node.asset.metadata.dimensions.width,
-    sizes,
+    sizes: sizesOption,
   } = options;
 
   const width = findClosestSize(defaultWidth, imageResizeTargets);
@@ -111,27 +128,26 @@ export function getImageProps<T extends ImageBlock>(
 
   if (asset.extension !== 'svg') {
     /**
-     * We can provide a specific set of options called sizes, which maps viewport widths to image widths.
-     * Passing this sizes option will override the default behavior
+     * The following srcset attribute will tell the browser which image-widths
+     * are available.
      */
-    if (sizes) {
-      srcSet = sizes
-        .map((srcSetSize) => {
-          const [viewport, size] = srcSetSize;
-          return `${getImageSrc(asset, size)} ${viewport}w`;
-        })
-        .join(', ');
-    } else {
-      // Map viewports and sizes 1-on-1
-      srcSet = imageResizeTargets
-        .map((size) => `${getImageSrc(asset, size)} ${size}w`)
-        .join(', ');
-    }
+    srcSet = imageResizeTargets
+      .map((size) => `${getImageSrc(asset, size)} ${size}w`)
+      .join(', ');
   }
+
+  /**
+   * The sizes attribute will tell the browser which image-width to use on given
+   * viewport-widths.
+   */
+  const sizes = sizesOption
+    ?.map(([viewport, size]) => `(min-width: ${viewport}px) ${size}px`)
+    .join(', ');
 
   return {
     src,
     srcSet,
+    sizes,
     alt,
     width,
     height,

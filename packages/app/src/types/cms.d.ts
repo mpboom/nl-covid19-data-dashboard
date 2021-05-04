@@ -1,5 +1,11 @@
 import { PortableTextEntry } from '@sanity/block-content-to-react';
 
+export type FAQuestionAndAnswer = {
+  content: RichContentBlock[] | null;
+  title: string;
+  group: string;
+};
+
 export type CollapsibleList = {
   content: RichContentBlock[] | null;
   title: string;
@@ -43,6 +49,7 @@ export interface Article {
   metaDescription: string;
   publicationDate: string;
   isHighlighted: boolean;
+  category: string;
 }
 
 export interface ImageBlock {
@@ -103,7 +110,7 @@ export type RoadmapData = {
 
 export type Restriction = {
   icon?: string;
-  _key: strinig;
+  _key: string;
   _type: 'restriction';
   text: string;
 };
@@ -141,3 +148,43 @@ declare module 'picosanity' {
     fetch<R = never>(query: string, params?: QueryParams): Promise<R>;
   }
 }
+
+export type TitleDescriptionBlock = {
+  _type: 'titleDescriptionBlock';
+  description: RichContentBlock[];
+  title: string;
+};
+
+export interface LokalizeText {
+  _type: 'lokalizeText';
+  _id: string;
+  _createdAt: string;
+  _updatedAt: string;
+
+  key: string;
+  subject: string;
+  path: string;
+  text: {
+    nl: string | undefined;
+    en: string | undefined;
+  };
+  should_display_empty: boolean;
+  is_newly_added: boolean;
+}
+
+export type DecoratedLink = {
+  title: string;
+  category: string;
+  href: string;
+  cover: ImageBlock;
+};
+
+export type VaccinationPageQuery = {
+  pageInfo: TitleDescriptionBlock;
+  pageLinks: DecoratedLink[];
+  linksTitle: string;
+  title: string;
+  description: RichContentBlock[];
+  milestones: Milestones[];
+  expectedMilestones: ExpectedMilestones[];
+};

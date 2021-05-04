@@ -1,16 +1,12 @@
-import { useTheme } from 'styled-components';
-import { AnchorTile } from '~/components-styled/anchor-tile';
-import { Box } from '~/components-styled/base';
-import { ChartTile } from '~/components-styled/chart-tile';
-import { Legenda } from '~/components-styled/legenda';
-import DeceasedMonitor from '~/domain/deceased/components/deceased-monitor-chart';
-import siteText from '~/locale/index';
 import {
   NationalDeceasedCbs,
   RegionalDeceasedCbs,
 } from '@corona-dashboard/common';
-
-const text = siteText.section_sterftemonitor;
+import { AnchorTile } from '~/components/anchor-tile';
+import { ChartTile } from '~/components/chart-tile';
+import { TimeSeriesChart } from '~/components/time-series-chart';
+import { useIntl } from '~/intl';
+import { colors } from '~/style/theme';
 
 export function DeceasedMonitorSection({
   data,
@@ -19,7 +15,8 @@ export function DeceasedMonitorSection({
   data: NationalDeceasedCbs | RegionalDeceasedCbs;
   showDataMessage?: boolean;
 }) {
-  const theme = useTheme();
+  const { siteText } = useIntl();
+  const text = siteText.section_sterftemonitor;
 
   return (
     <>
@@ -39,45 +36,37 @@ export function DeceasedMonitorSection({
         title={text.deceased_monitor_chart_title}
         description={text.deceased_monitor_chart_description}
       >
-        <DeceasedMonitor
+        <TimeSeriesChart
+          tooltipTitle={text.deceased_monitor_chart_title}
           values={data.values}
-          config={{
-            registered: {
-              label: text.deceased_monitor_chart_legenda_registered,
-              color: theme.colors.data.secondary,
-            },
-            expected: {
+          ariaLabelledBy=""
+          seriesConfig={[
+            {
+              type: 'line',
+              metricProperty: 'expected',
               label: text.deceased_monitor_chart_legenda_expected,
-              color: theme.colors.data.primary,
+              shortLabel: text.deceased_monitor_chart_legenda_expected_short,
+              color: colors.data.primary,
             },
-            margin: {
+            {
+              type: 'line',
+              metricProperty: 'registered',
+              label: text.deceased_monitor_chart_legenda_registered,
+              shortLabel: text.deceased_monitor_chart_legenda_registered_short,
+              color: colors.data.secondary,
+              strokeWidth: 4,
+            },
+            {
+              type: 'range',
+              metricPropertyLow: 'expected_min',
+              metricPropertyHigh: 'expected_max',
               label: text.deceased_monitor_chart_legenda_expected_margin,
-              color: theme.colors.data.margin,
+              shortLabel:
+                text.deceased_monitor_chart_legenda_expected_margin_short,
+              color: colors.data.margin,
             },
-          }}
+          ]}
         />
-
-        <Box pl="56px">
-          <Legenda
-            items={[
-              {
-                label: text.deceased_monitor_chart_legenda_registered,
-                color: theme.colors.data.secondary,
-                shape: 'line',
-              },
-              {
-                label: text.deceased_monitor_chart_legenda_expected,
-                color: theme.colors.data.primary,
-                shape: 'line',
-              },
-              {
-                label: text.deceased_monitor_chart_legenda_expected_margin,
-                color: theme.colors.data.margin,
-                shape: 'square',
-              },
-            ]}
-          />
-        </Box>
       </ChartTile>
     </>
   );

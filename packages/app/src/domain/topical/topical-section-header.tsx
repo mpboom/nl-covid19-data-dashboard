@@ -1,17 +1,16 @@
 import { isEmpty } from 'lodash';
 import { ReactNode } from 'react';
-import { ArrowIconLeft, ArrowIconRight } from '~/components-styled/arrow-icon';
-import { Box } from '~/components-styled/base';
-import { LinkWithIcon } from '~/components-styled/link-with-icon';
-import { RelativeDate } from '~/components-styled/relative-date';
+import { ArrowIconLeft, ArrowIconRight } from '~/components/arrow-icon';
+import { Box } from '~/components/base';
+import { LinkWithIcon } from '~/components/link-with-icon';
+import { RelativeDate } from '~/components/relative-date';
 import {
   Heading,
   HeadingLevel,
   InlineText,
   Text,
-} from '~/components-styled/typography';
-import text from '~/locale';
-import { formatDateFromSeconds } from '~/utils/formatDate';
+} from '~/components/typography';
+import { useIntl } from '~/intl';
 import { replaceComponentsInText } from '~/utils/replace-components-in-text';
 
 interface TopicalSectionHeaderProps {
@@ -32,7 +31,10 @@ export function TopicalSectionHeader({
   showBackLink,
   link,
   description,
+  headingLevel = 2,
 }: TopicalSectionHeaderProps) {
+  const { siteText: text, formatDateFromSeconds } = useIntl();
+
   return (
     <Box spacing={3} mt={{ _: 2, md: 4 }}>
       {showBackLink && (
@@ -54,7 +56,7 @@ export function TopicalSectionHeader({
           alignItems="baseline"
         >
           <Heading
-            level={2}
+            level={headingLevel}
             fontWeight="bold"
             m={0}
             mb={{ _: 2, lg: 0 }}

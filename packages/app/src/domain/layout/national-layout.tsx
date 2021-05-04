@@ -5,45 +5,57 @@ import Arts from '~/assets/arts.svg';
 import ElderlyIcon from '~/assets/elderly.svg';
 import Gedrag from '~/assets/gedrag.svg';
 import Gehandicaptenzorg from '~/assets/gehandicapte-zorg.svg';
+import Phone from '~/assets/phone.svg';
 import ReproIcon from '~/assets/reproductiegetal.svg';
 import RioolwaterMonitoring from '~/assets/rioolwater-monitoring.svg';
 import GetestIcon from '~/assets/test.svg';
+import VaccinatieIcon from '~/assets/vaccinaties.svg';
 import Verpleeghuiszorg from '~/assets/verpleeghuiszorg.svg';
 import VirusIcon from '~/assets/virus.svg';
-import VaccinatieIcon from '~/assets/vaccinaties.svg';
 import Ziekenhuis from '~/assets/ziekenhuis.svg';
 import Ziektegolf from '~/assets/ziektegolf.svg';
 import {
   CategoryMenu,
   Menu,
+  MetricMenuButtonLink,
   MetricMenuItemLink,
-} from '~/components-styled/aside/menu';
-import { AppContent } from '~/components-styled/layout/app-content';
-import { SidebarMetric } from '~/components-styled/sidebar-metric';
-import { Layout } from '~/domain/layout/layout';
-import siteText from '~/locale/index';
-import { useBreakpoints } from '~/utils/useBreakpoints';
-import { Box } from '~/components-styled/base';
+} from '~/components/aside/menu';
+import { Box } from '~/components/base';
+import { AppContent } from '~/components/layout/app-content';
+import { SidebarMetric } from '~/components/sidebar-metric';
+import { useIntl } from '~/intl';
+import { useBreakpoints } from '~/utils/use-breakpoints';
+
+export const nlPageMetricNames = [
+  'vaccine_administered_total',
+  'tested_overall',
+  'infectious_people',
+  'reproduction',
+  'deceased_rivm',
+  'hospital_nice',
+  'hospital_nice_per_age_group',
+  'intensive_care_nice',
+  'intensive_care_nice_per_age_group',
+  'nursing_home',
+  'disability_care',
+  'elderly_at_home',
+  'sewer',
+  'doctor',
+  'behavior',
+  'difference',
+  'corona_melder_app',
+] as const;
+
+export type NlPageMetricNames = typeof nlPageMetricNames[number];
+
+export type NationalPageMetricData = Pick<National, NlPageMetricNames>;
 
 interface NationalLayoutProps {
   lastGenerated: string;
-  data: National;
+  data: NationalPageMetricData;
   children?: React.ReactNode;
 }
 
-export function getNationalLayout(
-  page: React.ReactNode,
-  pageProps: NationalLayoutProps
-) {
-  return (
-    <Layout
-      {...siteText.nationaal_metadata}
-      lastGenerated={pageProps.lastGenerated}
-    >
-      <NationalLayout {...pageProps}>{page}</NationalLayout>
-    </Layout>
-  );
-}
 /**
  * NationalLayout is a composition of persistent layouts.
  *
@@ -60,10 +72,11 @@ export function getNationalLayout(
  * More info on persistent layouts:
  * https://adamwathan.me/2019/10/17/persistent-layout-patterns-in-nextjs/
  */
-function NationalLayout(props: NationalLayoutProps) {
+export function NationalLayout(props: NationalLayoutProps) {
   const { children, data } = props;
   const router = useRouter();
   const breakpoints = useBreakpoints();
+  const { siteText } = useIntl();
 
   const isMenuOpen =
     (router.pathname === '/landelijk' && !('menu' in router.query)) ||
@@ -97,7 +110,9 @@ function NationalLayout(props: NationalLayoutProps) {
             pt={4}
           >
             <Menu>
-              <MetricMenuItemLink
+              <MetricMenuButtonLink
+                title={siteText.nationaal_maatregelen.titel_sidebar}
+                subtitle={siteText.nationaal_maatregelen.subtitel_sidebar}
                 href={{
                   pathname: '/landelijk/maatregelen',
                   query: breakpoints.md
@@ -106,12 +121,11 @@ function NationalLayout(props: NationalLayoutProps) {
                     ? { menu: '0' }
                     : { menu: '1' },
                 }}
-                title={siteText.nationaal_maatregelen.titel_sidebar}
-                subtitle={siteText.nationaal_maatregelen.subtitel_sidebar}
               />
 
               <CategoryMenu
                 title={siteText.nationaal_layout.headings.vaccinaties}
+                isFirstItem
               >
                 <MetricMenuItemLink
                   href="/landelijk/vaccinaties"
@@ -231,9 +245,9 @@ function NationalLayout(props: NationalLayoutProps) {
                     data={data}
                     scope="nl"
                     metricName="intensive_care_nice"
-                    metricProperty="admissions_moving_average"
+                    metricProperty="admissions_on_date_of_reporting"
                     localeTextKey="ic_opnames_per_dag"
-                    differenceKey="intensive_care_nice__admissions_moving_average"
+                    differenceKey="intensive_care_nice__admissions_on_date_of_reporting"
                     showBarScale={true}
                   />
                 </MetricMenuItemLink>
@@ -334,6 +348,18 @@ function NationalLayout(props: NationalLayoutProps) {
                     scope="nl"
                     metricName="behavior"
                     localeTextKey="gedrag_common"
+                  />
+                </MetricMenuItemLink>
+                <MetricMenuItemLink
+                  href="/landelijk/coronamelder"
+                  icon={<Phone />}
+                  title={siteText.corona_melder_app.sidebar.titel}
+                >
+                  <SidebarMetric
+                    data={data}
+                    scope="nl"
+                    metricName="corona_melder_app"
+                    localeTextKey="corona_melder_app"
                   />
                 </MetricMenuItemLink>
               </CategoryMenu>

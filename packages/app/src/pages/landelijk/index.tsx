@@ -1,14 +1,28 @@
-import { FCWithLayout } from '~/domain/layout/layout';
-import { getNationalLayout } from '~/domain/layout/national-layout';
-import { getNlData, getLastGeneratedDate } from '~/static-props/get-data';
-import { createGetStaticProps } from '~/static-props/create-get-static-props';
+import { Layout } from '~/domain/layout/layout';
+import { NationalLayout } from '~/domain/layout/national-layout';
+import { useIntl } from '~/intl';
+import {
+  createGetStaticProps,
+  StaticProps,
+} from '~/static-props/create-get-static-props';
+import {
+  getLastGeneratedDate,
+  selectNlPageMetricData,
+} from '~/static-props/get-data';
 
 export const getStaticProps = createGetStaticProps(
   getLastGeneratedDate,
-  getNlData
+  selectNlPageMetricData()
 );
 
-const National: FCWithLayout<typeof getStaticProps> = () => null;
-National.getLayout = getNationalLayout;
+const National = (props: StaticProps<typeof getStaticProps>) => {
+  const { siteText } = useIntl();
+  const { selectedNlData: data, lastGenerated } = props;
+  return (
+    <Layout {...siteText.nationaal_metadata} lastGenerated={lastGenerated}>
+      <NationalLayout data={data} lastGenerated={lastGenerated} />
+    </Layout>
+  );
+};
 
 export default National;

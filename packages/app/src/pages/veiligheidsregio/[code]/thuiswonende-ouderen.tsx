@@ -1,167 +1,261 @@
 import ElderlyIcon from '~/assets/elderly.svg';
-import { ContentHeader } from '~/components-styled/content-header';
-import { KpiTile } from '~/components-styled/kpi-tile';
-import { KpiValue } from '~/components-styled/kpi-value';
-import { LineChartTile } from '~/components-styled/line-chart-tile';
-import { TileList } from '~/components-styled/tile-list';
-import { TwoKpiSection } from '~/components-styled/two-kpi-section';
-import { Text } from '~/components-styled/typography';
-import { SEOHead } from '~/components-styled/seo-head';
-import { FCWithLayout } from '~/domain/layout/layout';
-import { getSafetyRegionLayout } from '~/domain/layout/safety-region-layout';
-import siteText from '~/locale/index';
-import { createGetStaticProps } from '~/static-props/create-get-static-props';
-import { getLastGeneratedDate, getVrData } from '~/static-props/get-data';
-import { replaceVariablesInText } from '~/utils/replaceVariablesInText';
+import { ChartTile } from '~/components/chart-tile';
+import { ContentHeader } from '~/components/content-header';
+import { KpiTile } from '~/components/kpi-tile';
+import { KpiValue } from '~/components/kpi-value';
+import { TileList } from '~/components/tile-list';
+import { TimeSeriesChart } from '~/components/time-series-chart';
+import { TwoKpiSection } from '~/components/two-kpi-section';
+import { Text } from '~/components/typography';
+import { Layout } from '~/domain/layout/layout';
+import { SafetyRegionLayout } from '~/domain/layout/safety-region-layout';
+import { useIntl } from '~/intl';
+import {
+  createGetStaticProps,
+  StaticProps,
+} from '~/static-props/create-get-static-props';
+import {
+  getLastGeneratedDate,
+  selectVrPageMetricData,
+} from '~/static-props/get-data';
+import { colors } from '~/style/theme';
+import { getBoundaryDateStartUnix } from '~/utils/get-trailing-date-range';
+import { replaceVariablesInText } from '~/utils/replace-variables-in-text';
 
 export { getStaticPaths } from '~/static-paths/vr';
 
 export const getStaticProps = createGetStaticProps(
   getLastGeneratedDate,
-  getVrData
+  selectVrPageMetricData()
 );
 
-const text = siteText.veiligheidsregio_thuiswonende_ouderen;
-const graphDescriptions = siteText.accessibility.grafieken;
-
-const ElderlyAtHomeRegionalPage: FCWithLayout<typeof getStaticProps> = (
-  props
+const ElderlyAtHomeRegionalPage = (
+  props: StaticProps<typeof getStaticProps>
 ) => {
-  const { safetyRegionName, data } = props;
+  const { safetyRegionName, selectedVrData: data, lastGenerated } = props;
   const { elderly_at_home, difference } = data;
 
+  const { siteText } = useIntl();
+
+  const text = siteText.veiligheidsregio_thuiswonende_ouderen;
+
+  const elderlyAtHomeUnderReportedRange = getBoundaryDateStartUnix(
+    elderly_at_home.values,
+    4
+  );
+
+  const elderlyAtHomeDeceasedUnderReportedRange = getBoundaryDateStartUnix(
+    elderly_at_home.values,
+    7
+  );
+
+  const metadata = {
+    ...siteText.veiligheidsregio_index.metadata,
+    title: replaceVariablesInText(text.metadata.title, {
+      safetyRegion: safetyRegionName,
+    }),
+    description: replaceVariablesInText(text.metadata.description, {
+      safetyRegion: safetyRegionName,
+    }),
+  };
+
   return (
-    <>
-      <SEOHead
-        title={replaceVariablesInText(text.metadata.title, {
-          safetyRegion: safetyRegionName,
-        })}
-        description={replaceVariablesInText(text.metadata.description, {
-          safetyRegion: safetyRegionName,
-        })}
-      />
-      <TileList>
-        <ContentHeader
-          category={siteText.veiligheidsregio_layout.headings.kwetsbare_groepen}
-          screenReaderCategory={siteText.thuiswonende_ouderen.titel_sidebar}
-          title={replaceVariablesInText(text.section_positive_tested.title, {
-            safetyRegion: safetyRegionName,
-          })}
-          icon={<ElderlyIcon />}
-          subtitle={replaceVariablesInText(
-            text.section_positive_tested.description,
-            {
-              safetyRegion: safetyRegionName,
+    <Layout {...metadata} lastGenerated={lastGenerated}>
+      <SafetyRegionLayout
+        data={data}
+        safetyRegionName={safetyRegionName}
+        lastGenerated={lastGenerated}
+      >
+        <TileList>
+          <ContentHeader
+            category={
+              siteText.veiligheidsregio_layout.headings.kwetsbare_groepen
             }
-          )}
-          metadata={{
-            datumsText: text.section_positive_tested.datums,
-            dateOrRange: elderly_at_home.last_value.date_unix,
-            dateOfInsertionUnix:
-              elderly_at_home.last_value.date_of_insertion_unix,
-            dataSources: [text.section_positive_tested.bronnen.rivm],
-          }}
-          reference={text.section_positive_tested.reference}
-        />
-
-        <TwoKpiSection>
-          <KpiTile
-            title={text.section_positive_tested.kpi_daily_title}
-            metadata={{
-              date: elderly_at_home.last_value.date_unix,
-              source: text.section_positive_tested.bronnen.rivm,
-            }}
-          >
-            <KpiValue
-              data-cy="positive_tested_daily"
-              absolute={elderly_at_home.last_value.positive_tested_daily}
-              difference={difference.elderly_at_home__positive_tested_daily}
-            />
-            <Text>{text.section_positive_tested.kpi_daily_description}</Text>
-          </KpiTile>
-          <KpiTile
-            title={text.section_positive_tested.kpi_daily_per_100k_title}
-            metadata={{
-              date: elderly_at_home.last_value.date_unix,
-              source: text.section_positive_tested.bronnen.rivm,
-            }}
-          >
-            <KpiValue
-              data-cy="positive_tested_daily_per_100k"
-              absolute={
-                elderly_at_home.last_value.positive_tested_daily_per_100k
+            screenReaderCategory={siteText.thuiswonende_ouderen.titel_sidebar}
+            title={replaceVariablesInText(text.section_positive_tested.title, {
+              safetyRegion: safetyRegionName,
+            })}
+            icon={<ElderlyIcon />}
+            subtitle={replaceVariablesInText(
+              text.section_positive_tested.description,
+              {
+                safetyRegion: safetyRegionName,
               }
-            />
-            <Text>
-              {text.section_positive_tested.kpi_daily_per_100k_description}
-            </Text>
-          </KpiTile>
-        </TwoKpiSection>
-
-        <LineChartTile
-          timeframeOptions={['all', '5weeks']}
-          title={text.section_positive_tested.line_chart_daily_title}
-          values={elderly_at_home.values}
-          ariaDescription={graphDescriptions.thuiswonende_ouderen_besmettingen}
-          linesConfig={[
-            {
-              metricProperty: 'positive_tested_daily',
-            },
-          ]}
-          metadata={{ source: text.section_positive_tested.bronnen.rivm }}
-        />
-
-        <ContentHeader
-          title={replaceVariablesInText(text.section_deceased.title, {
-            safetyRegion: safetyRegionName,
-          })}
-          icon={<ElderlyIcon />}
-          subtitle={replaceVariablesInText(text.section_deceased.description, {
-            safetyRegion: safetyRegionName,
-          })}
-          metadata={{
-            datumsText: text.section_deceased.datums,
-            dateOrRange: elderly_at_home.last_value.date_unix,
-            dateOfInsertionUnix:
-              elderly_at_home.last_value.date_of_insertion_unix,
-            dataSources: [text.section_deceased.bronnen.rivm],
-          }}
-          reference={text.section_deceased.reference}
-        />
-
-        <TwoKpiSection>
-          <KpiTile
-            title={text.section_deceased.kpi_daily_title}
-            description={text.section_deceased.kpi_daily_description}
+            )}
             metadata={{
-              date: elderly_at_home.last_value.date_unix,
-              source: text.section_deceased.bronnen.rivm,
+              datumsText: text.section_positive_tested.datums,
+              dateOrRange: elderly_at_home.last_value.date_unix,
+              dateOfInsertionUnix:
+                elderly_at_home.last_value.date_of_insertion_unix,
+              dataSources: [text.section_positive_tested.bronnen.rivm],
             }}
-          >
-            <KpiValue
-              data-cy="deceased_daily"
-              absolute={elderly_at_home.last_value.deceased_daily}
-            />
-          </KpiTile>
-        </TwoKpiSection>
+            reference={text.section_positive_tested.reference}
+          />
 
-        <LineChartTile
-          timeframeOptions={['all', '5weeks']}
-          title={text.section_deceased.line_chart_daily_title}
-          ariaDescription={graphDescriptions.thuiswonende_ouderen_overleden}
-          values={elderly_at_home.values}
-          linesConfig={[
-            {
-              metricProperty: 'deceased_daily',
-            },
-          ]}
-          metadata={{ source: text.section_positive_tested.bronnen.rivm }}
-        />
-      </TileList>
-    </>
+          <TwoKpiSection>
+            <KpiTile
+              title={text.section_positive_tested.kpi_daily_title}
+              metadata={{
+                date: elderly_at_home.last_value.date_unix,
+                source: text.section_positive_tested.bronnen.rivm,
+              }}
+            >
+              <KpiValue
+                data-cy="positive_tested_daily"
+                absolute={elderly_at_home.last_value.positive_tested_daily}
+                difference={difference.elderly_at_home__positive_tested_daily}
+              />
+              <Text>{text.section_positive_tested.kpi_daily_description}</Text>
+            </KpiTile>
+            <KpiTile
+              title={text.section_positive_tested.kpi_daily_per_100k_title}
+              metadata={{
+                date: elderly_at_home.last_value.date_unix,
+                source: text.section_positive_tested.bronnen.rivm,
+              }}
+            >
+              <KpiValue
+                data-cy="positive_tested_daily_per_100k"
+                absolute={
+                  elderly_at_home.last_value.positive_tested_daily_per_100k
+                }
+              />
+              <Text>
+                {text.section_positive_tested.kpi_daily_per_100k_description}
+              </Text>
+            </KpiTile>
+          </TwoKpiSection>
+
+          <ChartTile
+            timeframeOptions={['all', '5weeks']}
+            title={text.section_positive_tested.line_chart_daily_title}
+            metadata={{ source: text.section_positive_tested.bronnen.rivm }}
+          >
+            {(timeframe) => (
+              <TimeSeriesChart
+                timeframe={timeframe}
+                values={elderly_at_home.values}
+                seriesConfig={[
+                  {
+                    type: 'line',
+                    metricProperty: 'positive_tested_daily_moving_average',
+                    label:
+                      text.section_positive_tested
+                        .line_chart_positive_tested_daily_moving_average,
+                    shortLabel:
+                      text.section_positive_tested
+                        .line_chart_positive_tested_daily_moving_average_short_label,
+                    color: colors.data.primary,
+                  },
+                  {
+                    type: 'bar',
+                    metricProperty: 'positive_tested_daily',
+                    label:
+                      text.section_positive_tested
+                        .line_chart_legend_trend_label,
+                    color: colors.data.primary,
+                  },
+                ]}
+                dataOptions={{
+                  timespanAnnotations: [
+                    {
+                      start: elderlyAtHomeUnderReportedRange,
+                      end: Infinity,
+                      label:
+                        text.section_deceased
+                          .line_chart_legend_inaccurate_label,
+                      shortLabel: siteText.common.incomplete,
+                    },
+                  ],
+                }}
+              />
+            )}
+          </ChartTile>
+
+          <ContentHeader
+            title={replaceVariablesInText(text.section_deceased.title, {
+              safetyRegion: safetyRegionName,
+            })}
+            icon={<ElderlyIcon />}
+            subtitle={replaceVariablesInText(
+              text.section_deceased.description,
+              {
+                safetyRegion: safetyRegionName,
+              }
+            )}
+            metadata={{
+              datumsText: text.section_deceased.datums,
+              dateOrRange: elderly_at_home.last_value.date_unix,
+              dateOfInsertionUnix:
+                elderly_at_home.last_value.date_of_insertion_unix,
+              dataSources: [text.section_deceased.bronnen.rivm],
+            }}
+            reference={text.section_deceased.reference}
+          />
+
+          <TwoKpiSection>
+            <KpiTile
+              title={text.section_deceased.kpi_daily_title}
+              description={text.section_deceased.kpi_daily_description}
+              metadata={{
+                date: elderly_at_home.last_value.date_unix,
+                source: text.section_deceased.bronnen.rivm,
+              }}
+            >
+              <KpiValue
+                data-cy="deceased_daily"
+                absolute={elderly_at_home.last_value.deceased_daily}
+              />
+            </KpiTile>
+          </TwoKpiSection>
+
+          <ChartTile
+            timeframeOptions={['all', '5weeks']}
+            title={text.section_deceased.line_chart_daily_title}
+            metadata={{ source: text.section_positive_tested.bronnen.rivm }}
+          >
+            {(timeframe) => (
+              <TimeSeriesChart
+                timeframe={timeframe}
+                values={elderly_at_home.values}
+                seriesConfig={[
+                  {
+                    type: 'line',
+                    metricProperty: 'deceased_daily_moving_average',
+                    label:
+                      text.section_deceased
+                        .line_chart_deceased_daily_moving_average,
+                    shortLabel:
+                      text.section_deceased
+                        .line_chart_deceased_daily_moving_average_short_label,
+                    color: colors.data.primary,
+                  },
+                  {
+                    type: 'bar',
+                    metricProperty: 'deceased_daily',
+                    label: text.section_deceased.line_chart_legend_trend_label,
+                    color: colors.data.primary,
+                  },
+                ]}
+                dataOptions={{
+                  timespanAnnotations: [
+                    {
+                      start: elderlyAtHomeDeceasedUnderReportedRange,
+                      end: Infinity,
+                      label:
+                        text.section_deceased
+                          .line_chart_legend_inaccurate_label,
+                      shortLabel: siteText.common.incomplete,
+                    },
+                  ],
+                }}
+              />
+            )}
+          </ChartTile>
+        </TileList>
+      </SafetyRegionLayout>
+    </Layout>
   );
 };
-
-ElderlyAtHomeRegionalPage.getLayout = getSafetyRegionLayout();
 
 export default ElderlyAtHomeRegionalPage;
